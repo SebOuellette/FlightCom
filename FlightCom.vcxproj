@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClCompile Include="Bitstream.cpp" />
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="EndDevice.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Proto.cpp" />
     <ClCompile Include="Server.cpp" />

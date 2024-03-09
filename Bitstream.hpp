@@ -6,8 +6,8 @@
 
 #define DEFAULT_BYTES_PER_LINE 4
 
-typedef unsigned char byte;
-typedef unsigned char* byte_p;
+typedef char byte;
+typedef char* byte_p;
 typedef long long int int_l;
 
 class bitstream {

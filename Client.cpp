@@ -5,7 +5,7 @@ Client::Client() {
 
     this->server.socket = Protocol::newSocket();
 
-    //this->server.addr = Protocol::newSockAddr("honeybeeks.net",//);
+    //this->server.addr = Protocol::newSockAddr("potato.net",//);
 }
 
 Client& Client::setConnectionAddr(IP addr, Port port) {
