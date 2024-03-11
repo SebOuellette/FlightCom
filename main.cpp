@@ -5,14 +5,16 @@
 #include <windows.networking.sockets.h>
 #include <iostream>
 #include <string>
+#include "ConfigReader.h"
 
+bool saveData(std::string flightID, double fuelConsumption, std::string timestamp, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown);
 
 #pragma comment(lib, "Ws2_32.lib")
 void main()
 {
 	bool shutdown = false;
-	std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository = std::make_shared < std::vector<std::pair<std::thread, Flight*>>>();
+	auto flightRepository = std::make_shared < std::vector<std::pair<std::thread, Flight*>>>();
 	std::thread listener(listeningThread, flightRepository, &shutdown);
 	//get a connection 
 
@@ -29,7 +31,9 @@ void main()
 
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown)
 {
-	Server flightListener("127.0.0.1");
+	ConfigReader configReader("/config.txt");
+	std::vector<Config> serverSocketConfigs = configReader.readConfig();
+	Server flightListener(serverSocketConfigs.front().address);
 
 	while (!shutdown)
 	{
@@ -53,8 +57,9 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 		{
 			if (flightRepository->at(i).second->getFlightStatus() != true)
 			{
-				flightRepository->at(i).first.join();
 				delete flightRepository->at(i).second;
+				flightRepository->at(i).first.join();
+				flightRepository->erase(flightRepository->begin() + i);
 			}
 		}
 	}
@@ -63,6 +68,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 	{
 		flightRepository->at(i).first.join();
 		delete flightRepository->at(i).second;
+		flightRepository->erase(flightRepository->begin() + i);
 	}
 
 }
@@ -74,20 +80,52 @@ void activeFlight(std::atomic<Flight*> connection)
 	double timeAtLastTransmission = 0;
 	double avgConsumption = 0;
 	bool flightStatus = true;
-	Flight* flightConnection = connection.load(std::memory_order_relaxed);
+	Flight* flightConnection = nullptr;
 	FlightData data;
 
 	while (flightStatus)
 	{
+		if (!connection.is_lock_free())
+			continue;
+
+		flightConnection = connection.load(std::memory_order_relaxed);
 		data = flightConnection->getData();
 
 		//calculation
 		flightStatus = flightConnection->getFlightStatus();
+		connection.store(flightConnection);
+
 		totalFuel += data.fuelLevel;
 		timespan += data.timeSinceEpoch - timeAtLastTransmission;
 		timeAtLastTransmission = data.timeSinceEpoch;
-		if(timespan != 0)
+		if (timespan != 0)
+		{
 			avgConsumption = totalFuel / timespan;
+			saveData(data.flightId, avgConsumption, timespan, "./");
+		}
+			
+
+	
 	}
+
+}
+
+
+bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path)
+{
+	std::string filepath = path;
+
+	std::ofstream fStreamout(filepath + flightID + ".txt", std::ios_base::app | std::ios_base::out);
+	if (fStreamout.is_open())
+	{
+		std::string src = flightID + " - " + std::to_string(fuelConsumption)+ "ga/sec" + " elapsed: " + std::to_string(timeElapsed) + "\n";
+		fStreamout.write(src.c_str(), src.size());
+	}
+	else
+	{
+		return false;
+	}
+	fStreamout.close();
+	return true;
 
 }

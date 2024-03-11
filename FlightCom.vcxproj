@@ -128,6 +128,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Bitstream.cpp" />
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="EndDevice.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Proto.cpp" />
@@ -135,6 +137,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bitstream.hpp" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="ConfigReader.h" />
     <ClInclude Include="EndDevice.hpp" />
     <ClInclude Include="Flight.h" />
     <ClInclude Include="Proto.hpp" />
