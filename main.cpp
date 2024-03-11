@@ -49,7 +49,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 		flightConnection.socket = flightSocket;
 		Flight* flight = new Flight(flightConnection);
 
-		std::thread connectionThread(activeFlight, flightConnection);
+		std::thread connectionThread(activeFlight, flight);
 
 		flightRepository->push_back(std::make_pair(connectionThread, flight));
 
