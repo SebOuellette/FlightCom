@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="Bitstream.hpp" />
     <ClInclude Include="EndDevice.hpp" />
+    <ClInclude Include="Flight.h" />
     <ClInclude Include="Proto.hpp" />
     <ClInclude Include="Server.hpp" />
   </ItemGroup>

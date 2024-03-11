@@ -1,112 +1,59 @@
-
-
-
-
-
-
-int main()
-{
-
-}
-
 #include <vector>
 #include <string>
-#include "Parallel.h"
+#include "Flight.h"
 #include <atomic>
 #include <windows.networking.sockets.h>
 #include <iostream>
 #include <string>
 
-void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, ClientFlight*>>> flightRepository, bool* shutdown);
+void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown);
 
 #pragma comment(lib, "Ws2_32.lib")
 void main()
 {
 	bool shutdown = false;
-	std::vector<std::pair<std::thread, ClientFlight*>> flights = std::vector<std::pair<std::thread, ClientFlight*>>();
-	std::shared_ptr<std::vector<std::pair<std::thread, ClientFlight*>>> flightRepository = std::make_shared < std::vector<std::pair<std::thread, ClientFlight*>>>();
-	std::thread listeningThread(listeningThread, flightRepository, &shutdown);
+	std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository = std::make_shared < std::vector<std::pair<std::thread, Flight*>>>();
+	std::thread listener(listeningThread, flightRepository, &shutdown);
 	//get a connection 
 
-	while (getchar() == 0)
+	while(!shutdown)
 	{//do nothing
+
+
+
 	}
 
-	listeningThread.join();
+	listener.join();
 
 }
 
-void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, ClientFlight*>>> flightRepository, bool* shutdown)
+void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown)
 {
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-		return;
-
-	SOCKET ServerSocket;
-	ServerSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (ServerSocket == INVALID_SOCKET) {
-		WSACleanup();
-		return;
-	}
-
-	sockaddr_in SvrAddr;
-	SvrAddr.sin_family = AF_INET;
-	SvrAddr.sin_addr.s_addr = INADDR_ANY;
-	SvrAddr.sin_port = htons(27000);
-	if (bind(ServerSocket, (struct sockaddr*)&SvrAddr, sizeof(SvrAddr)) == SOCKET_ERROR)
-	{
-		closesocket(ServerSocket);
-		WSACleanup();
-		return;
-	}
-
-	if (listen(ServerSocket, 1) == SOCKET_ERROR) {
-		closesocket(ServerSocket);
-		WSACleanup();
-		return;
-	}
-
-	std::cout << "Waiting for client connection\n" << std::endl;
-
-	SOCKET ConnectionSocket;
+	Server flightListener("127.0.0.1");
 
 	while (!shutdown)
 	{
-		ConnectionSocket = SOCKET_ERROR;
-		if ((ConnectionSocket = accept(ServerSocket, NULL, NULL)) == SOCKET_ERROR) {
-			closesocket(ServerSocket);
-			WSACleanup();
-			return;
-		}
+		FlightData flightData = FlightData();
+		flightListener.accept();
+		bitstream serializedConnectionData = flightListener.recv();
+		memcpy(&flightData, serializedConnectionData.start(), sizeof(FlightData));
+		
+		Socket flightSocket = flightListener.getReplySocket();
+		Address flightAddress = flightListener.getReplyAddr();
+		Connection flightConnection;
+		flightConnection.addr = flightAddress;
+		flightConnection.socket = flightSocket;
+		Flight* flight = new Flight(flightConnection);
 
-		std::cout << "Connection Established" << std::endl;
+		std::thread connectionThread(activeFlight, flightConnection);
 
-		char* buffer = new char[1024];
-		memset(buffer, 0, 1024);
-		//determine the planeID and dispatch a thread to continue accepting data
-		recv(ConnectionSocket, buffer, 1024, 0);
-
-		ClientFlight* planeFlight = new ClientFlight();
-
-		memcpy(&planeFlight, buffer, sizeof(ClientFlight));
-
-		std::thread planeConnection(activeFlight, ConnectionSocket, planeFlight);
-		//push back never changes the index of the currently held flight connections
-		flightRepository->push_back(std::make_pair(planeConnection, planeFlight));
+		flightRepository->push_back(std::make_pair(connectionThread, flight));
 
 		for (int i = 0; i < flightRepository->size(); i++)
 		{
-			//only ever reading critical data, never writing
-			//using a shared ptr anyways
-			if (flightRepository->at(i).second->getFlightStatus() == false)
+			if (flightRepository->at(i).second->getFlightStatus() != true)
 			{
 				flightRepository->at(i).first.join();
-
-				//write to disk the second in the pair
-
-
-
-				//free memory
 				delete flightRepository->at(i).second;
 			}
 		}
@@ -115,26 +62,32 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, ClientFl
 	for (int i = 0; i < flightRepository->size(); i++)
 	{
 		flightRepository->at(i).first.join();
+		delete flightRepository->at(i).second;
 	}
 
 }
 
-void activeFlight(SOCKET ConnectionSocket, std::atomic<ClientFlight*> data)
+void activeFlight(std::atomic<Flight*> connection)
 {
-	double total = 0;
+	double totalFuel = 0;
 	double timespan = 0;
-	char* buffer = new char[1024];
-	memset(buffer, 0, 1024);
+	double timeAtLastTransmission = 0;
+	double avgConsumption = 0;
+	bool flightStatus = true;
+	Flight* flightConnection = connection.load(std::memory_order_relaxed);
+	FlightData data;
 
-	//calculation
-	bool flightStatus = data.load(std::memory_order_relaxed)->getFlightStatus();
+	while (flightStatus)
+	{
+		data = flightConnection->getData();
 
-
-	recv(ConnectionSocket, buffer, 1024, 0);
-	ClientFlightData dataRecevied;
-	std::memcpy(buffer, &dataRecevied, sizeof(ClientFlightData));
-
-	total += dataRecevied.fuelLevel;
-	timespan += dataRecevied.
+		//calculation
+		flightStatus = flightConnection->getFlightStatus();
+		totalFuel += data.fuelLevel;
+		timespan += data.timeSinceEpoch - timeAtLastTransmission;
+		timeAtLastTransmission = data.timeSinceEpoch;
+		if(timespan != 0)
+			avgConsumption = totalFuel / timespan;
+	}
 
 }

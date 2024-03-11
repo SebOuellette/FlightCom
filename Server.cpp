@@ -1,13 +1,18 @@
 #include "Server.hpp"
 
-Server::Server() {
+Server::Server(Connection socket)
+{
+    this->listenSocket = socket;
+}
+
+Server::Server(std::string ipAddr) {
     std::cout << "Server has been started" << std::endl;
 
     /// Create a socket
     this->listenSocket.socket = Protocol::newSocket();
 
     // Create a new address object for this socket
-    this->listenSocket.addr = Protocol::newSockAddr("127.0.0.1");
+    this->listenSocket.addr = Protocol::newSockAddr(ipAddr.c_str());
 
     // Bind the address struct to the socket
     Protocol::bindSocket(this->getServerSocket(), &this->listenSocket.addr);
@@ -55,6 +60,12 @@ Socket Server::getReplySocket() {
 Address Server::getReplyAddr() {
     return this->replySocket.addr;
 }
+
+void Server::setListenSocket(Connection socket)
+{
+    this->listenSocket = socket;
+}
+
 
 Socket Server::accept() {
     /// Accept call creates a new socket for the incoming connection

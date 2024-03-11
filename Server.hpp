@@ -11,7 +11,8 @@ private:
     Connection replySocket;
 
 public:
-    Server();
+    Server(Connection);
+    Server(std::string);
     ~Server();
 
     bitstream send(bitstream&);
@@ -23,6 +24,8 @@ public:
     Address getServerAddr();
     Socket getReplySocket();
     Address getReplyAddr();
+
+    void setListenSocket(Connection);
 };
 
 #endif
