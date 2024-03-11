@@ -16,7 +16,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 void main()
 {
 	bool shutdown = false;
-	auto flightRepository = std::make_shared < std::vector<std::pair<std::thread, Flight*>>>();
+	auto flightRepository = std::make_shared<std::vector<std::pair<std::thread, Flight*>>>();
 	std::thread listener(listeningThread, flightRepository, &shutdown);
 	//get a connection 
 
@@ -74,7 +74,8 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 
 		std::thread connectionThread(activeFlight, flight);
 
-		flightRepository->push_back(std::make_pair(connectionThread, flight));
+		std::pair<std::thread, Flight*> newPair = { connectionThread, flight };
+		flightRepository->push_back(newPair);
 
 		for (int i = 0; i < flightRepository->size(); i++)
 		{

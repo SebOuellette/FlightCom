@@ -3,6 +3,8 @@
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
+//defined to keep the linux variant of GET_STR_ADDR from causing errors
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
