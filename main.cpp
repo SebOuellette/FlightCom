@@ -38,8 +38,8 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 		bitstream serializedConnectionData = flightListener.recv();
 		memcpy(&flightData, serializedConnectionData.start(), sizeof(FlightData));
 		
-		Socket flightSocket = flightListener.getReplySocket();
-		Address flightAddress = flightListener.getReplyAddr();
+		Socket flightSocket = flightListener.getServerSocket();
+		Address flightAddress = flightListener.getServerAddr();
 		Connection flightConnection;
 		flightConnection.addr = flightAddress;
 		flightConnection.socket = flightSocket;
