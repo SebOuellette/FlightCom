@@ -66,8 +66,8 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 
 	for (int i = 0; i < flightRepository->size(); i++)
 	{
-		flightRepository->at(i).first.join();
 		delete flightRepository->at(i).second;
+		flightRepository->at(i).first.join();
 		flightRepository->erase(flightRepository->begin() + i);
 	}
 
