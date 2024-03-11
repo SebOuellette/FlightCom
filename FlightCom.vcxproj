@@ -24,6 +24,7 @@
     <ProjectGuid>{c2852264-3273-46bf-9ae4-cbf3203d3f88}</ProjectGuid>
     <RootNamespace>FlightCom</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>FlightCom_Airplane</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -130,16 +131,16 @@
     <ClCompile Include="Bitstream.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="EndDevice.cpp" />
+    <ClCompile Include="GenerateID.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Proto.cpp" />
-    <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bitstream.hpp" />
     <ClInclude Include="Client.hpp" />
     <ClInclude Include="EndDevice.hpp" />
+    <ClInclude Include="GenerateID.h" />
     <ClInclude Include="Proto.hpp" />
-    <ClInclude Include="Server.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
