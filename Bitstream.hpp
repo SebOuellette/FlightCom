@@ -6,14 +6,20 @@
 #include <string>
 #include <cstdlib>
 #define DEFAULT_BYTES_PER_LINE 4
+#ifndef _WIN32
+typedef char BitstreamByte;
+typedef char* BitstreamByte_p;
+#else
+typedef unsigned char BitstreamByte;
+typedef unsigned char* BitstreamByte_p;
+#endif
 
-typedef char byte;
-typedef char* byte_p;
+
 typedef long long int int_l;
 
 class bitstream {
 private:
-    byte* data = nullptr;
+    BitstreamByte_p data = nullptr;
     int_l _size = 0;
 
 
@@ -24,10 +30,10 @@ public:
     int_l size();
 
     // Get the address of the first byte in the block of data
-    byte* start();
+    BitstreamByte_p start();
 
     // Get the address of the first byte after the block of data.
-    byte* end();
+    BitstreamByte_p end();
 
     // Delete all the data in the buffer
     bitstream& clear();
@@ -59,7 +65,7 @@ public:
 
         // Begin serializing each byte
         for (int i = 0; i < size; i++) {
-            byte data = *((byte_p)&value + i);
+            BitstreamByte data = *((BitstreamByte_p)&value + i);
 
             buffer[i] = data;
         }
@@ -76,7 +82,7 @@ public:
     template <class Val>
     bitstream& serializeArray(Val array[], int_l size) {
         for (int i = 0; i < size; i++) {
-            byte data = *((byte_p)array + i);
+            BitstreamByte data = *((BitstreamByte_p)array + i);
 
             serializeValue(data);
         }

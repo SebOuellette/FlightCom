@@ -8,6 +8,7 @@
 #include <string>
 #include "ConfigReader.h"
 
+void activeFlight(std::atomic<Flight*> connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown);
 

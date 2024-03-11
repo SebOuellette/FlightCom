@@ -1,7 +1,7 @@
 #include "EndDevice.hpp"
 
 bitstream EndDevice::send(int socket, bitstream& stream) {
-    int n = ::send(socket, stream.start(), stream.size(), IPPROTO_TCP);
+    int n = ::send(socket, (char*)stream.start(), stream.size(), IPPROTO_TCP);
 
     if (RECV_ERR(n)) {
         fprintf(stderr, "Send Failure [%d]. I'm scared; disconnecting...", n);
@@ -15,11 +15,11 @@ bitstream EndDevice::send(int socket, bitstream& stream) {
 }
 
 bitstream EndDevice::recv(int socket, int_l size) {
-    byte* buffer2 = new byte[size];
+    BitstreamByte_p buffer2 = new BitstreamByte[size];
     bitstream stream;
 
     // Receive the message from the server
-    int n = ::recv(socket, buffer2, size, IPPROTO_TCP);
+    int n = ::recv(socket, (char*)buffer2, size, IPPROTO_TCP);
 
     if (RECV_ERR(n)) {
         fprintf(stderr, "Receive Failure [%d]. I'm scared; disconnecting...", n);

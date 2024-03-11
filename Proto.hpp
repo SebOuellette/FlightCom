@@ -2,12 +2,14 @@
 #define PROTO_HPP
 
 #ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
 #define SHTDWN_BOTH SD_BOTH
 #define SLEEP_TIME(nSeconds) (Sleep(nSeconds) )
-#define _CRT_SECURE_NO_WARNINGS
+#define SET_ADDR_PTR(ipAddr, sockaddrObject) (inet_pton(AF_INET, ipAddr, sockaddrObject))
+#define GET_STR_ADDR(sin_addr) (winStrAddr(sin_addr))
 #elif __linux__
 #include <netinet/in.h>
 #include <unistd.h>
@@ -15,7 +17,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #define SHTDWN_BOTH SHUT_RDWR
-#define SLEEP_TIME(nSeconds) (sleep(nSeconds) )
+#define SLEEP_TIME(nSeconds) ((sleep(nSeconds) )
+#define SET_ADDR_PTR(ipAddr, sockaddrObject) (inet_addr(ipAddr))
+#define GET_STR_ADDR(sin_addr) (linStrAddr(sin_addr))
 #else
 #error "Unrecognized OS"
 #endif

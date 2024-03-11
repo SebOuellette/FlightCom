@@ -1,6 +1,9 @@
 #include "proto.hpp"
 #include <cstring>
 
+std::string winStrAddr(IN_ADDR* sin_addr);
+std::string linStrAddr(IN_ADDR* sin_addr);
+
 Protocol::Protocol() {
     std::cout << "Protocol constructor" << std::endl;
     if (WSAStartup(MAKEWORD(2, 2), &this->wsaData) != 0) {
@@ -42,7 +45,7 @@ Address Protocol::newSockAddr(IP ipAddr, Port port) {
     sockaddrObject.sin_port = htons(port);
 
     // Set IP address to localhost
-    sockaddrObject.sin_addr.s_addr = inet_addr(ipAddr);
+    sockaddrObject.sin_addr.s_addr = SET_ADDR_PTR(ipAddr, &sockaddrObject.sin_addr);
 
     return sockaddrObject;
 }
@@ -122,7 +125,8 @@ int Protocol::shutdownSocket(Socket socket) {
 }
 
 std::string Protocol::addrToString(Address addr) {
-    std::string joined = inet_ntoa(addr.sin_addr);
+
+    std::string joined = GET_STR_ADDR(&addr.sin_addr);
     joined += ":";
     joined += std::to_string(ntohs(addr.sin_port));
 
@@ -131,4 +135,15 @@ std::string Protocol::addrToString(Address addr) {
 
 void Protocol::logErr(int _errno) {
     std::cerr << "\033[31m" << "[" << _errno << "]" << strerror(_errno) << "\033[0m" << std::endl;
+}
+
+std::string winStrAddr(IN_ADDR* sin_addr)
+{
+    char buffer[sizeof(sin_addr)] = { 0 }; 
+    return std::string(inet_ntop(AF_INET, sin_addr, buffer, sizeof(buffer)));
+}
+
+std::string linStrAddr(IN_ADDR* sin_addr)
+{
+    return std::string(inet_ntoa(*sin_addr));
 }

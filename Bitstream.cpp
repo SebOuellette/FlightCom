@@ -21,18 +21,18 @@ int_l bitstream::size() {
 }
 
 // Return the beginning of the block of data
-byte* bitstream::start() {
+BitstreamByte_p bitstream::start() {
     return this->data;
 }
 
 // Return the end of the block of data
-byte* bitstream::end() {
+BitstreamByte_p bitstream::end() {
     // Check if data exists first
     if (!this->data)
         return nullptr;
 
     // If it exists, add size to the start pointer to get the end
-    return (byte*)((int_l)this->start() + this->size());
+    return (BitstreamByte_p)((int_l)this->start() + this->size());
 }
 
 // Free all the allocated data. There is no need to reallocate since it will be allocated once required
@@ -63,8 +63,8 @@ bitstream& bitstream::append(char* byteArray, int_l count) {
 
 
     // (re)allocate space for the data
-    this->data = (byte*)std::realloc(this->data, newSize);
-    byte* dataEnd = this->start() + this->size();
+    this->data = (BitstreamByte_p)std::realloc(this->data, newSize);
+    BitstreamByte_p dataEnd = this->start() + this->size();
 
     // end() points to the first byte after data. We offset the pointer by the number of bytes we would like to append,
     /// or by the number of available bytes, if we are appending too many.
@@ -90,7 +90,7 @@ bitstream& bitstream::display(unsigned short int width) {
         bool firstByte = byteCol == 0;
         bool finalByte = byteCol == (width - 1);
 
-        byte Byte = this->data[i];
+        BitstreamByte Byte = this->data[i];
         if (firstByte)
             printf("0x%12llx:\t", (int_l)this->data + i);
 
