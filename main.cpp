@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <string>
 #include "Flight.h"
@@ -7,7 +8,7 @@
 #include <string>
 #include "ConfigReader.h"
 
-bool saveData(std::string flightID, double fuelConsumption, std::string timestamp, std::string path);
+bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown);
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -18,11 +19,32 @@ void main()
 	std::thread listener(listeningThread, flightRepository, &shutdown);
 	//get a connection 
 
+	int opt = 0;
+
 	while(!shutdown)
-	{//do nothing
+	{
+		std::cout << "Flight server running. Listening for connections now... " << std::endl << std::endl;
+		//get user input
+		std::cout << "Please select an option: " << std::endl;
+		std::cout << "1: Shutdown";
+		opt = std::getchar();
+		
+		switch (opt)
+		{
+		case 1:
+			shutdown = true;
+		default:
+			break;
+		}
 
+	}
+	
 
-
+	for (int i = 0; i < flightRepository->size(); i++)
+	{
+		delete flightRepository->at(i).second;
+		flightRepository->at(i).first.join();
+		flightRepository->erase(flightRepository->begin() + i);
 	}
 
 	listener.join();
@@ -63,14 +85,6 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 			}
 		}
 	}
-
-	for (int i = 0; i < flightRepository->size(); i++)
-	{
-		delete flightRepository->at(i).second;
-		flightRepository->at(i).first.join();
-		flightRepository->erase(flightRepository->begin() + i);
-	}
-
 }
 
 void activeFlight(std::atomic<Flight*> connection)

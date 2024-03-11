@@ -82,7 +82,7 @@ int Protocol::bindSocket(Socket socket, sockaddr_in* serverAddr, unsigned int ma
         remainingAttempts--;
 
         // Sleep for 5 seconds, then retry binding
-        sleep(5);
+        SLEEP_TIME(5);
         return derr;
     }
 
@@ -108,7 +108,7 @@ Socket Protocol::acceptConnection(Socket listenSocket, Address* resAddr) {
 
 /// Safely shutdown a socket fd and return shutdown's errno
 int Protocol::shutdownSocket(Socket socket) {
-    int success = shutdown(socket, SHUT_RDWR);
+    int success = shutdown(socket, SHTDWN_BOTH);
     int derr = errno;
 
     if (success != 0) {

@@ -1,9 +1,10 @@
 #ifndef BITSTREAM_CPP
 #define BITSTREAM_CPP
+#endif
 
+#pragma once
 #include <string>
 #include <cstdlib>
-
 #define DEFAULT_BYTES_PER_LINE 4
 
 typedef char byte;
@@ -103,5 +104,3 @@ public:
     bitstream* operator<<(std::string);
     bitstream* operator<<(bool);
 };
-
-#endif
