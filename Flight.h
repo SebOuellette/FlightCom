@@ -7,11 +7,11 @@
 
 struct FlightData
 {
+    unsigned char size;
     bool flightStatus;
     double fuelLevel;
     std::string flightId;
     time_t timeSinceEpoch;
-    
 };
 
 
