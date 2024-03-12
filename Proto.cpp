@@ -69,7 +69,7 @@ int Protocol::connectSocket(Socket socket, Address* serverAddr) {
 }
 
 /// Bind the socket to a port. Attempts <maxAttempts> times
-int Protocol::bindSocket(Socket socket, sockaddr_in* serverAddr, unsigned int maxAttempts) {
+int Protocol::bindSocket(Socket socket, Address* serverAddr, unsigned int maxAttempts) {
     int remainingAttempts = maxAttempts;
     int bindResult = -1;
     int derr = -1;
