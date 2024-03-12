@@ -3,7 +3,7 @@
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
-//defined to keep the linux variant of GET_STR_ADDR from causing errors
+//defined to keep the linux variant of GET_STR_ADDR from causing errors for windows/visual studio
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -28,14 +28,9 @@
 
 
 #include <cstdint>
-
 #include <string.h>
-
-
 #include <iostream>
-
 #include "bitstream.hpp"
-
 #define PORT 3311
 
 typedef int Socket;

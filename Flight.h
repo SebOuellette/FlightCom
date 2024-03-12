@@ -21,7 +21,7 @@ private:
     bitstream serializedflightData;
     
 public:
-    Flight(Connection connection) : Server(connection) {}
+    Flight(Connection connection) : Server(connection) { this->flightData.flightStatus = true; }
 
     FlightData getData()
     {
