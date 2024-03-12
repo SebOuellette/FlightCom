@@ -10,13 +10,13 @@
 
 void activeFlight(std::atomic<Flight*> connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
-void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown);
+void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
 
 #pragma comment(lib, "Ws2_32.lib")
 void main()
 {
 	bool shutdown = false;
-	auto flightRepository = std::make_shared<std::vector<std::pair<std::thread, Flight*>>>();
+	auto flightRepository = std::make_shared<std::vector<std::pair<std::thread*, Flight*>>>();
 	std::thread listener(listeningThread, flightRepository, &shutdown);
 	//get a connection 
 
@@ -39,12 +39,10 @@ void main()
 		}
 
 	}
-	
-
 	for (int i = 0; i < flightRepository->size(); i++)
 	{
 		delete flightRepository->at(i).second;
-		flightRepository->at(i).first.join();
+		flightRepository->at(i).first->join();
 		flightRepository->erase(flightRepository->begin() + i);
 	}
 
@@ -52,10 +50,11 @@ void main()
 
 }
 
-void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>>> flightRepository, bool* shutdown)
+void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown)
 {
 	ConfigReader configReader("/config.txt");
 	std::vector<Config> serverSocketConfigs = configReader.readConfig();
+	//there is only one that we need - better than hardcoding a 0
 	Server flightListener(serverSocketConfigs.front().address);
 
 	while (!shutdown)
@@ -72,9 +71,9 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 		flightConnection.socket = flightSocket;
 		Flight* flight = new Flight(flightConnection);
 
-		std::thread connectionThread(activeFlight, flight);
+		std::thread* connectionThread = new std::thread(activeFlight, flight);
 
-		std::pair<std::thread, Flight*> newPair = { connectionThread, flight };
+		std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
 		flightRepository->push_back(newPair);
 
 		for (int i = 0; i < flightRepository->size(); i++)
@@ -82,7 +81,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread, Flight*>
 			if (flightRepository->at(i).second->getFlightStatus() != true)
 			{
 				delete flightRepository->at(i).second;
-				flightRepository->at(i).first.join();
+				flightRepository->at(i).first->join();
 				flightRepository->erase(flightRepository->begin() + i);
 			}
 		}
