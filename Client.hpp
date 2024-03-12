@@ -4,23 +4,24 @@
 #include <iostream>
 #include "Proto.hpp"
 #include "EndDevice.hpp"
+#include <Windows.h>
 
 class Client : private EndDevice {
 private:
-    Connection server;
+	Connection server;
 
 public:
-    Client();
+	Client();
 
-    Client& setConnectionAddr(IP addr, Port port = PORT);
-    Client& setConnectionAddr(Address addr);
-    Client& connect();
+	Client& setConnectionAddr(IP addr, Port port = PORT);
+	Client& setConnectionAddr(Address addr);
+	Client& connect();
 
-    bitstream send(bitstream&);
-    bitstream recv(int_l = 512);
+	bitstream send(bitstream&);
+	bitstream recv(int_l = 512);
 
-    Socket getSocket();
-    Address* getAddress();
+	Socket getSocket();
+	Address* getAddress();
 };
 
 #endif
