@@ -7,10 +7,14 @@
 #include <iostream>
 #include <string>
 #include "ConfigReader.h"
+#include <mutex>
+#include <condition_variable>
 
 void activeFlight(std::atomic<Flight*> connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
+std::mutex lock;
+std::condition_variable writeWakeUp;
 
 #pragma comment(lib, "Ws2_32.lib")
 void main()
@@ -43,6 +47,7 @@ void main()
 	{
 		delete flightRepository->at(i).second;
 		flightRepository->at(i).first->join();
+		delete flightRepository->at(i).first;
 		flightRepository->erase(flightRepository->begin() + i);
 	}
 
@@ -80,6 +85,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 			{
 				delete flightRepository->at(i).second;
 				flightRepository->at(i).first->join();
+				delete flightRepository->at(i).first;
 				flightRepository->erase(flightRepository->begin() + i);
 			}
 		}
@@ -88,7 +94,8 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 
 void activeFlight(std::atomic<Flight*> connection)
 {
-	double totalFuel = 0;
+	double fuelSpent = 0;
+	double fuelAtLastTransmission = 0;
 	double timespan = 0;
 	double timeAtLastTransmission = 0;
 	double avgConsumption = 0;
@@ -108,19 +115,20 @@ void activeFlight(std::atomic<Flight*> connection)
 		flightStatus = flightConnection->getFlightStatus();
 		connection.store(flightConnection);
 
-		totalFuel += data.fuelLevel;
-		timespan += data.timeSinceEpoch - timeAtLastTransmission;
+		fuelSpent = (fuelAtLastTransmission == 0) ? 0 : data.fuelLevel - fuelAtLastTransmission;
+		fuelAtLastTransmission = data.fuelLevel;
+		timespan += (timeAtLastTransmission == 0) ? 0 : data.timeSinceEpoch - timeAtLastTransmission;
 		timeAtLastTransmission = data.timeSinceEpoch;
 		if (timespan != 0)
 		{
-			avgConsumption = totalFuel / timespan;
-			saveData(data.flightId, avgConsumption, timespan, "./");
+			avgConsumption = fuelSpent / timespan;
+
+			{
+				std::scoped_lock fileLock(lock);
+				saveData(data.flightId, avgConsumption, timespan, "/");
+			}	
 		}
-			
-
-	
 	}
-
 }
 
 
