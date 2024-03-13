@@ -61,6 +61,11 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 	ConfigReader configReader("./config.txt");
 	std::vector<Config> serverSocketConfigs = configReader.readConfig();
 	//there is only one that we need - better than hardcoding a 0
+
+	WSADATA wsaData;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+		return;
+
 	Server flightListener(serverSocketConfigs.front().address);
 
 	while (!*shutdown)

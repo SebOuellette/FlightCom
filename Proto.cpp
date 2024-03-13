@@ -20,13 +20,12 @@ Protocol::~Protocol() {
 Socket Protocol::newSocket() {
     /// Create new socket fd. The options are as follows:
 
-    
-
-   
-
     // Internet domain      |       Stream socket   |       Default protocol (TCP in this case)
-    Socket newSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
+    Socket newSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (newSock == INVALID_SOCKET) {
+        WSACleanup();
+        return 0;
+    }
     return newSock;
 }
 
@@ -45,7 +44,7 @@ Address Protocol::newSockAddr(IP ipAddr, Port port) {
     sockaddrObject.sin_port = htons(port);
 
     // Set IP address to localhost
-    sockaddrObject.sin_addr.s_addr = SET_ADDR_PTR(ipAddr, &sockaddrObject.sin_addr);
+    sockaddrObject.sin_addr.s_addr = INADDR_ANY;//SET_ADDR_PTR(ipAddr, &sockaddrObject.sin_addr);
 
     return sockaddrObject;
 }

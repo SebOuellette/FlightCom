@@ -22,10 +22,10 @@ bitstream EndDevice::recv(int socket, int_l size) {
     int n = ::recv(socket, (char*)buffer2, size, IPPROTO_TCP);
 
     if (RECV_ERR(n)) {
-        fprintf(stderr, "Receive Failure [%d]. I'm scared; disconnecting...", n);
+        int resCode = WSAGetLastError();
+        fprintf(stderr, "Receive Failure [%d]. I'm scared; disconnecting...Socket response: [%d]", n, resCode);
         Protocol::logErr(n);
         Protocol::shutdownSocket(socket);
-
         exit(1);
     }
 

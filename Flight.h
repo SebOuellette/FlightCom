@@ -26,7 +26,8 @@ public:
     FlightData getData()
     {
         serializedflightData = this->recv();
-        memcpy(&flightData, serializedflightData.start(), sizeof(FlightData));
+        memcpy(&flightData.size, serializedflightData.start(), sizeof(FlightData::size));
+        memcpy(&flightData.flightStatus, serializedflightData.start() + sizeof(FlightData::size), flightData.size);
         return flightData;
     }
 
