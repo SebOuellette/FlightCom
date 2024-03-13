@@ -28,10 +28,11 @@ void main()
 
 	while(!shutdown)
 	{
-		std::cout << "Flight server running. Listening for connections now... " << std::endl << std::endl;
+		std::cout << "Flight server starting... " << std::endl << std::endl;
 		//get user input
 		std::cout << "Please select an option: " << std::endl;
-		std::cout << "1: Shutdown";
+		std::cout << "1: Shutdown" << std::endl;
+		std::cout << std::endl << std::endl;
 		opt = std::getchar();
 		
 		switch (opt)
@@ -57,12 +58,12 @@ void main()
 
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown)
 {
-	ConfigReader configReader("/config.txt");
+	ConfigReader configReader("./config.txt");
 	std::vector<Config> serverSocketConfigs = configReader.readConfig();
 	//there is only one that we need - better than hardcoding a 0
 	Server flightListener(serverSocketConfigs.front().address);
 
-	while (!shutdown)
+	while (!*shutdown)
 	{
 		FlightData flightData = FlightData();
 		flightListener.accept();
@@ -71,8 +72,8 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 		memcpy(&flightData.flightStatus, serializedConnectionData.start() + sizeof(FlightData::size), flightData.size);
 
 		Connection flightConnection;
-		flightConnection.addr = flightListener.getServerAddr();
-		flightConnection.socket = flightListener.getServerSocket();
+		flightConnection.addr = flightListener.getReplyAddr();
+		flightConnection.socket = flightListener.getReplySocket();
 		Flight* flight = new Flight(flightConnection);
 
 		std::thread* connectionThread = new std::thread(activeFlight, flight);

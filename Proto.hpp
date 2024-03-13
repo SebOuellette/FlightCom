@@ -31,7 +31,7 @@
 #include <string.h>
 #include <iostream>
 #include "bitstream.hpp"
-#define PORT 3311
+#define PORT 23512
 
 typedef int Socket;
 typedef const char* IP;
