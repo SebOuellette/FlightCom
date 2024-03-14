@@ -11,6 +11,7 @@
 #include <ctime>
 #include <filesystem>
 #include <iomanip>
+#include "GenerateID.h"
 //#include "ConfigReader.h"
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -51,18 +52,21 @@ void main() {
 	// Get the first line which we dont need for the circumstance and ignore it
 	std::getline(readFile, line);
 
+	FlightData flightData = FlightData();
+	bool firstPacket = true;
+
+	//generate flightId
+	GenerateID generateID = GenerateID();
+	std::string flightID = generateID.GetRandomSequence(1);
+
 	std::getline(readFile, line);
-	std::cout << "line read:" << line << std::endl;
 
 	//Remove the date portion from the string
-	// 3_3_2023 14:53:21,4564.466309,
-
+// 3_3_2023 14:53:21,4564.466309,
 	pos = line.find("_");
 	line = line.substr(pos);
-
 	pos = line.find(" ");
 	line = line.substr(pos + 1);
-	std::cout << "Date Removed:" << line << std::endl;
 
 	//Seperate the fuel level from the time
 	//14:53:21,4564.466309,
@@ -80,9 +84,7 @@ void main() {
 	pos = temp.find(",");
 	temp = temp.substr(0, pos);
 
-	std::cout << "Current Fuel:" << temp << "     Time:" << line << std::endl;
-
-	//convert temp string into fuel value
+	//convert temp string into double fuel value
 	currentFuel = std::stod(temp);
 
 	// convert string time into a time_t variable
@@ -90,44 +92,101 @@ void main() {
 
 	std::cout << "Current Fuel: " << currentFuel << "     Time: " << time << std::endl;
 
-	// loop and read file until the EOF
-	while (std::getline(readFile, line);)
+	// initialize data packet
+	flightData.flightStatus = true;
+	flightData.fuelLevel = currentFuel;
+	flightData.timeSinceEpoch = time;
+	flightData.Length = 64;
+	// only send the flightId for the first packet
+	if (firstPacket == true)
 	{
-		//Remove the date portion from the string
-		// 3_3_2023 14:53:21,4564.466309,
-		pos = line.find("_");
-		line = line.substr(pos);
-		pos = line.find(" ");
-		line = line.substr(pos + 1);
-
-		//Seperate the fuel level from the time
-		//14:53:21,4564.466309,
-		pos = line.find(",");
-
-		//temp = 4564.466309,
-		temp = line.substr(pos + 1);
-
-		// have line only contain time
-		// line = 14:53:21
-		line = line.substr(0, pos);
-
-		//remove tail comma from fual value
-		//temp = 4564.466309
-		pos = temp.find(",");
-		temp = temp.substr(0, pos);
-
-		//convert temp string into double fuel value
-		currentFuel = std::stod(temp);
-
-		// convert string time into a time_t variable
-		time = stringToTime(line);
-
-		std::cout << "Current Fuel: " << currentFuel << "     Time: " << time << std::endl;
-
-		// initialize data packet
-		// add condition to only send the id for the first packet
+		flightData.flightId = flightID;
+		firstPacket = false;
 	}
+
+	// Serialize FlightData
+	std::cout << "serialized FlightData:" << std::endl;
+	std::cout << "flightStatus: " << flightData.flightStatus << std::endl;
+	std::cout << "Length: " << flightData.Length << std::endl;
+	std::cout << "fuelLevel: " << flightData.fuelLevel << std::endl;
+	std::cout << "flightId: " << flightData.flightId << std::endl;
+	std::cout << "timeSinceEpoch: " << flightData.timeSinceEpoch << std::endl;
+	std::string serializedData = SerializeFlightData(flightData);
+
+	// Deserialize FlightData to simulate sending over TCP
+	FlightData receivedData = DeserializeFlightData(serializedData);
+
+	// Output the deserialized data
+	std::cout << "Deserialized FlightData:" << std::endl;
+	std::cout << "flightStatus: " << receivedData.flightStatus << std::endl;
+	std::cout << "Length: " << receivedData.Length << std::endl;
+	std::cout << "fuelLevel: " << receivedData.fuelLevel << std::endl;
+	std::cout << "flightId: " << receivedData.flightId << std::endl;
+	std::cout << "timeSinceEpoch: " << receivedData.timeSinceEpoch << std::endl;
+
+	// loop and read file until the EOF
+	while (std::getline(readFile, line))
+	{
+		////Remove the date portion from the string
+		//// 3_3_2023 14:53:21,4564.466309,
+		//pos = line.find("_");
+		//line = line.substr(pos);
+		//pos = line.find(" ");
+		//line = line.substr(pos + 1);
+
+		////Seperate the fuel level from the time
+		////14:53:21,4564.466309,
+		//pos = line.find(",");
+
+		////temp = 4564.466309,
+		//temp = line.substr(pos + 1);
+
+		//// have line only contain time
+		//// line = 14:53:21
+		//line = line.substr(0, pos);
+
+		////remove tail comma from fual value
+		////temp = 4564.466309
+		//pos = temp.find(",");
+		//temp = temp.substr(0, pos);
+
+		////convert temp string into double fuel value
+		//currentFuel = std::stod(temp);
+
+		//// convert string time into a time_t variable
+		//time = stringToTime(line);
+
+		//std::cout << "Current Fuel: " << currentFuel << "     Time: " << time << std::endl;
+
+		//// initialize data packet
+		//flightData.flightStatus = true;
+		//flightData.fuelLevel = currentFuel;
+		//flightData.timeSinceEpoch = time;
+
+		//// only send the flightId for the first packet
+		//if (firstPacket == true)
+		//{
+		//	flightData.flightId = flightID;
+		//	firstPacket = false;
+		//}
+
+		//// Serialize FlightData
+		//std::string serializedData = SerializeFlightData(flightData);
+
+		//// Deserialize FlightData to simulate sending over TCP
+		//FlightData receivedData = DeserializeFlightData(serializedData);
+
+		//// Output the deserialized data
+		//std::cout << "Deserialized FlightData:" << std::endl;
+		//std::cout << "flightStatus: " << receivedData.flightStatus << std::endl;
+		//std::cout << "Length: " << receivedData.Length << std::endl;
+		//std::cout << "fuelLevel: " << receivedData.fuelLevel << std::endl;
+		//std::cout << "flightId: " << receivedData.flightId << std::endl;
+		//std::cout << "timeSinceEpoch: " << receivedData.timeSinceEpoch << std::endl;
+	}
+
 	//Send EOF signal -> data packet with flightStatus == false
+	flightData.flightStatus = false;
 
 	//close connection
 
