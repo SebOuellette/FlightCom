@@ -74,7 +74,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 		flightListener.accept();
 		bitstream serializedConnectionData = flightListener.recv();
 		memcpy(&flightData.size, serializedConnectionData.start(), sizeof(FlightData::size));
-		memcpy(&flightData.flightStatus, serializedConnectionData.start() + sizeof(FlightData::size), flightData.size);
+		memcpy(&flightData.size, serializedConnectionData.start(), flightData.size);
 
 		Connection flightConnection;
 		flightConnection.addr = flightListener.getReplyAddr();
