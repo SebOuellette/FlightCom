@@ -42,7 +42,7 @@ void main()
 		default:
 			break;
 		}
-
+		 
 	}
 	for (int i = 0; i < flightRepository->size(); i++)
 	{
