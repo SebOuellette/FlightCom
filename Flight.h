@@ -26,11 +26,25 @@ public:
         this->replySocket = connection;
     }
 
-    FlightData getData()
+    FlightData getData(bool &firstPacket)
     {
-        bitstream transmittedData = recv(PACKET_SIZE);
-        deserializeFlightData(transmittedData);
-        return flightData;
+        int size = firstPacket ? PACKET_SIZE : PACKET_SIZE-10;
+        bitstream transmittedData = recv(size);
+        firstPacket = false;
+
+        // Check if connection closed
+        if (!(transmittedData.size() == PACKET_SIZE || transmittedData.size() == PACKET_SIZE - 10)) {
+            this->flightData.flightStatus = false;
+
+            std::cout << "Packet invalid, closing connection whatever " << transmittedData.size() << std::endl;
+
+            FlightData d;
+            d.Length = 0;
+            return d;
+        }
+
+        FlightData flight = deserializeFlightData(transmittedData);
+        return flight;
     }
 
     bool getFlightStatus()

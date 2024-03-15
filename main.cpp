@@ -79,12 +79,12 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 		flightConnection.socket = flightListener.getReplySocket();
 		Flight* flight = new Flight(flightConnection);
 
-		//std::thread* connectionThread = new std::thread(activeFlight, flight);
+		std::thread* connectionThread = new std::thread(activeFlight, flight);
 
 
-		//std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
-		//flightRepository->push_back(newPair);
-		activeFlight(flight);
+		std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
+		flightRepository->push_back(newPair);
+		//activeFlight(flight);
 
 		for (int i = 0; i < flightRepository->size(); i++)
 		{
@@ -110,13 +110,19 @@ void activeFlight(std::atomic<Flight*> connection)
 	Flight* flightConnection = nullptr;
 	FlightData data;
 
+	bool first = true;
 	while (flightStatus)
 	{
 		if (!connection.is_lock_free())
 			continue;
 
 		flightConnection = connection.load(std::memory_order_relaxed);
-		data = flightConnection->getData();
+		data = flightConnection->getData(first);
+
+		std::cout << "Length: " << data.Length << std::endl;
+		if (data.Length == 0) {
+			break;
+		}
 
 		//calculation
 		flightStatus = flightConnection->getFlightStatus();
@@ -131,7 +137,7 @@ void activeFlight(std::atomic<Flight*> connection)
 			avgConsumption = fuelSpent / timespan;
 
 			{
-				std::scoped_lock fileLock(lock);
+				//std::scoped_lock fileLock(lock);
 				saveData(data.flightId, avgConsumption, timespan, "/");
 			}	
 		}

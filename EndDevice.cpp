@@ -21,12 +21,18 @@ bitstream EndDevice::recv(int socket, int_l size) {
     // Receive the message from the server
     int n = ::recv(socket, (char*)buffer2, size, 0);
 
+    std::cout << "n is " << n << std::endl;
+    if (!(n == PACKET_SIZE || n == PACKET_SIZE - 10)) {
+        std::cout << "triggered" << std::endl;
+        return bitstream();
+    }
+
     if (RECV_ERR(n)) {
         int resCode = WSAGetLastError();
         fprintf(stderr, "Receive Failure [%d]. I'm scared; disconnecting...Socket response: [%d]", n, resCode);
         Protocol::logErr(n);
         Protocol::shutdownSocket(socket);
-        exit(1);
+        //exit(1);
     }
 
     // Display the message

@@ -142,7 +142,7 @@ void Protocol::logErr(int _errno) {
 
 std::string winStrAddr(IN_ADDR* sin_addr)
 {
-    char buffer[24] = { 0 }; 
+    char buffer[16] = { 0 }; 
     return std::string(inet_ntop(AF_INET, sin_addr, buffer, sizeof(buffer)));
 }
 
