@@ -138,26 +138,53 @@ bitstream& bitstream::display(unsigned short int width) {
 }
 
 // Append a string
+// Append a string
 bitstream* bitstream::operator<<(std::string data) {
+	this->append((char*)data.c_str(), data.size());
+
 	return this;
 }
 
 // Append an integer
 bitstream* bitstream::operator<<(int data) {
+	char dat[sizeof(int)];
+
+	//Copy over data
+	memcpy(dat, &data, sizeof(int));
+
+	this->append(dat, sizeof(int));
+
 	return this;
 }
 
 // Append a double
 bitstream* bitstream::operator<<(double data) {
+	char dat[sizeof(double)];
+
+	//Copy over data
+	memcpy(dat, &data, sizeof(double));
+
+	this->append(dat, sizeof(double));
+
 	return this;
 }
 
 // Append a char
 bitstream* bitstream::operator<<(char data) {
+
+	this->append(&data, sizeof(char));
+
 	return this;
 }
 
 // Append a boolean
 bitstream* bitstream::operator<<(bool data) {
+	char dat[sizeof(bool)];
+
+	//Copy over data
+	memcpy(dat, &data, sizeof(bool));
+
+	this->append(dat, sizeof(bool));
+
 	return this;
 }

@@ -96,25 +96,25 @@ void main() {
 	std::cout << "timeSinceEpoch: " << receivedData.timeSinceEpoch << std::endl;
 
 	// loop and read file until the EOF
-	while (std::getline(readFile, line))
-	{
-		ParseLine(line, currentFuel, time);
+	//while (std::getline(readFile, line))
+	//{
+	//	ParseLine(line, currentFuel, time);
 
-		// initialize data packet
-		flightData.flightStatus = true;
-		flightData.fuelLevel = currentFuel;
-		flightData.timeSinceEpoch = time;
-		flightData.Length = 64;
-		// only send the flightId for the first packet
-		if (firstPacket == true)
-		{
-			flightData.flightId = flightID;
-			firstPacket = false;
-		}
+	//	// initialize data packet
+	//	flightData.flightStatus = true;
+	//	flightData.fuelLevel = currentFuel;
+	//	flightData.timeSinceEpoch = time;
+	//	flightData.Length = 64;
+	//	// only send the flightId for the first packet
+	//	if (firstPacket == true)
+	//	{
+	//		flightData.flightId = flightID;
+	//		firstPacket = false;
+	//	}
 
-		bitstream stream;
-		stream = serializeFlightData(flightData);
-	}
+	//	bitstream stream;
+	//	stream = serializeFlightData(flightData);
+	//}
 
 	//Send EOF signal -> data packet with flightStatus == false
 	flightData.flightStatus = false;
@@ -128,6 +128,8 @@ void ParseLine(std::string line, double& currentFuel, time_t& time)
 {
 	int pos = 0;
 	std::string temp = "";
+
+	std::cout << line << std::endl;
 
 	//Remove the date portion from the string
 	// 3_3_2023 14:53:21,4564.466309,
