@@ -1,29 +1,58 @@
-#pragma once
 #include <vector>
 #include <string>
 #include "Flight.h"
-#include <windows.networking.sockets.h>
+//#include <windows.networking.sockets.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <ctime>
 #include <iomanip>
-#include "bitstream.hpp"
 #include "GenerateID.h"
-//#include "ConfigReader.h"
-
-#pragma comment(lib, "Ws2_32.lib")
+#include "Client.hpp"
+#include "thread"
 
 time_t stringToTime(std::string line);
 void ParseLine(std::string line, double& currentFuel, time_t& time);
+void ClientConnection(std::vector<FlightData*>* dataStreams);
+void SpawnClient(bool* stop);
+
+#pragma comment(lib, "Ws2_32.lib")
 
 void main() {
-	// Open connection / Connect to server
 
+	//get input from user - number of clients to spawn
+	int numberOfClients = 100;
+	bool stop = false;
+	std::vector<std::thread*> clientThreads;
+
+	WSADATA wsaData;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+		return;
+
+	for (int i = 0; i < numberOfClients; i++)
+	{
+		std::thread* clientThread = new std::thread(SpawnClient, &stop);
+		clientThreads.push_back(clientThread);
+	}
+	//dont stop until it is terminated automatically
+	while (!stop) {};
+	for (std::thread*& client : clientThreads)
+	{
+		client->join();
+		delete[] client;
+	}
+	//End of Program
+}
+
+void SpawnClient(bool* stop)
+{
+	// Open connection / Connect to server
+	std::thread* sendingThread = nullptr;
+	std::vector<FlightData*>* transmissions = new std::vector<FlightData*>();
 	std::cout << "Connected to server" << std::endl;
 
-	FlightData flightData = FlightData();
+	FlightData* flightData = nullptr;
 	bool firstPacket = true;
 
 	//generate flightId
@@ -57,34 +86,65 @@ void main() {
 	// Get the first line which we dont need for the circumstance and ignore it
 	std::getline(readFile, line);
 
+	sendingThread = new std::thread(ClientConnection, transmissions);
+
 	// loop and read file until the EOF
 	while (std::getline(readFile, line))
 	{
 		ParseLine(line, currentFuel, time);
-
+		flightData = new FlightData();
 		// initialize data packet
-		flightData.flightStatus = true;
-		flightData.fuelLevel = currentFuel;
-		flightData.timeSinceEpoch = time;
-		flightData.Length = 64;
+		flightData->flightStatus = true;
+		flightData->fuelLevel = currentFuel;
+		flightData->timeSinceEpoch = time;
+		flightData->Length = 64;
 		// only send the flightId for the first packet
 		if (firstPacket == true)
 		{
-			flightData.flightId = flightID;
+			flightData->flightId = flightID;
 			firstPacket = false;
 		}
-
-		bitstream stream;
-		stream = serializeFlightData(flightData);
+		transmissions->push_back(flightData);
 	}
 
 	//Send EOF signal -> data packet with flightStatus == false
-	flightData.flightStatus = false;
-
+	flightData = new FlightData();
+	flightData->flightStatus = false;
+	transmissions->push_back(flightData);
+	*stop = true;
+	sendingThread->join();
+	delete[] sendingThread;
 	//close connection
-
-	//End of Program
 }
+
+
+void ClientConnection(std::vector<FlightData*>* dataStreams)
+{
+	int currentIndex = 0;
+	IP serverIP = "192.168.50.12";
+	bool transmissionStatus = true;
+
+	Client* clientConnection = new Client();
+	clientConnection->setConnectionAddr(serverIP, 23512);
+	clientConnection->connect();
+
+	do
+	{
+		if (dataStreams->empty())
+			continue;
+
+		FlightData* currentTransmission = dataStreams->at(currentIndex);
+		transmissionStatus = currentTransmission->flightStatus;
+
+		bitstream stream;
+		stream = serializeFlightData(*currentTransmission);
+		clientConnection->send(stream);
+
+	} while (transmissionStatus == true);
+	delete[] clientConnection;
+}
+
+
 
 void ParseLine(std::string line, double& currentFuel, time_t& time)
 {

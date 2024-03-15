@@ -17,6 +17,7 @@ bitstream::bitstream(bitstream& stream) {
 	}
 }
 
+
 // Deconstructor | Free all data
 bitstream::~bitstream() {
 	if (!this->data) {

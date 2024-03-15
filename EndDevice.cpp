@@ -1,6 +1,6 @@
 #include "EndDevice.hpp"
 
-bitstream EndDevice::send(int socket, bitstream& stream) {
+bitstream& EndDevice::send(int socket, bitstream& stream) {
 	int n = ::send(socket, (char*)stream.start(), stream.size(), IPPROTO_TCP);
 
 	if (RECV_ERR(n)) {

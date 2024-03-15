@@ -12,7 +12,7 @@ private:
 public:
 	EndDevice();
 
-	static bitstream send(int socket, bitstream&);
+	static bitstream& send(int socket, bitstream&);
 	static bitstream recv(int socket, int_l = 512);
 };
 
