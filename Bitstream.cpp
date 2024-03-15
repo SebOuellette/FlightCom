@@ -7,6 +7,16 @@ bitstream::bitstream() {
 	this->_size = 0;
 }
 
+bitstream::bitstream(bitstream* stream) {
+	// Allocate space for the new data
+	this->data = (BitstreamByte_p)malloc(stream->size());
+
+	// Copy the provided bitstream data into the current bitstream
+	if (this->data != nullptr) {
+		memcpy(this->data, stream->start(), stream->size());
+	}
+}
+
 // Deconstructor | Free all data
 bitstream::~bitstream() {
 	if (!this->data) {
