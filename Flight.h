@@ -39,7 +39,7 @@ public:
             std::cout << "Packet invalid, closing connection whatever " << transmittedData.size() << std::endl;
 
             FlightData d;
-            d.Length = 0;
+            d.fuelLevel = 0;
             return d;
         }
 

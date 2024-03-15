@@ -119,8 +119,8 @@ void activeFlight(std::atomic<Flight*> connection)
 		flightConnection = connection.load(std::memory_order_relaxed);
 		data = flightConnection->getData(first);
 
-		std::cout << "Length: " << data.Length << std::endl;
-		if (data.Length == 0) {
+		std::cout << "Length: " << data.fuelLevel << std::endl;
+		if (data.fuelLevel = 0) {
 			break;
 		}
 
