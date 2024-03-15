@@ -57,28 +57,6 @@ void main() {
 	// Get the first line which we dont need for the circumstance and ignore it
 	std::getline(readFile, line);
 
-	// Serialize FlightData
-	//std::cout << "serialized FlightData:" << std::endl;
-	//std::cout << "flightStatus: " << flightData.flightStatus << std::endl;
-	//std::cout << "Length: " << flightData.Length << std::endl;
-	//std::cout << "fuelLevel: " << flightData.fuelLevel << std::endl;
-	//std::cout << "flightId: " << flightData.flightId << std::endl;
-	//std::cout << "timeSinceEpoch: " << flightData.timeSinceEpoch << std::endl;
-
-	//bitstream stream;
-	//stream = serializeFlightData(flightData);
-
-	// Deserialize FlightData to simulate sending over TCP
-	//FlightData receivedData = deserializeFlightData(stream);
-
-	// Output the deserialized data
-	//std::cout << "Deserialized FlightData:" << std::endl;
-	//std::cout << "flightStatus: " << receivedData.flightStatus << std::endl;
-	//std::cout << "Length: " << receivedData.Length << std::endl;
-	//std::cout << "fuelLevel: " << receivedData.fuelLevel << std::endl;
-	//std::cout << "flightId: " << receivedData.flightId << std::endl;
-	//std::cout << "timeSinceEpoch: " << receivedData.timeSinceEpoch << std::endl;
-
 	// loop and read file until the EOF
 	while (std::getline(readFile, line))
 	{
