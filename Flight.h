@@ -4,7 +4,7 @@
 #include <map>
 #include <thread>
 #include "Server.hpp"
-
+#define PACKET_SIZE 24
 struct FlightData
 {
     unsigned char Length;
@@ -25,7 +25,7 @@ public:
 
     FlightData getData()
     {
-        bitstream transmittedData = recv();
+        bitstream transmittedData = recv(PACKET_SIZE);
         deserializeFlightData(transmittedData);
         return flightData;
     }
