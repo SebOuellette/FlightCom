@@ -6,14 +6,14 @@ std::string linStrAddr(IN_ADDR* sin_addr);
 
 Protocol::Protocol() {
 	std::cout << "Protocol constructor" << std::endl;
-	if (WSAStartup(MAKEWORD(2, 2), &this->wsaData) != 0) {
+	/*if (WSAStartup(MAKEWORD(2, 2), &this->wsaData) != 0) {
 		std::cerr << "WSAStartup failed\n";
 		exit(-1);
-	}
+	}*/
 }
 
 Protocol::~Protocol() {
-	WSACleanup();
+	//WSACleanup();
 }
 
 /// Create a new socket fd
@@ -21,7 +21,7 @@ Socket Protocol::newSocket() {
 	/// Create new socket fd. The options are as follows:
 
 	// Internet domain      |       Stream socket   |       Default protocol (TCP in this case)
-	Socket newSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	Socket newSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	return newSock;
 }
@@ -131,8 +131,8 @@ void Protocol::logErr(int _errno) {
 
 std::string winStrAddr(IN_ADDR* sin_addr)
 {
-	char buffer[sizeof(sin_addr)] = { 0 };
-	return std::string(inet_ntop(AF_INET, sin_addr, buffer, sizeof(buffer)));
+	char buffer[24] = { 0 };
+	return std::string(inet_ntop(AF_INET, sin_addr, buffer, sizeof(buffer) - 1));
 }
 
 std::string linStrAddr(IN_ADDR* sin_addr)

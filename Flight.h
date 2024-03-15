@@ -68,7 +68,7 @@ public:
 // Function to serialize FlightData
 bitstream serializeFlightData(const FlightData& data) {
 	bitstream stream;
-	stream << (int)data.flightId.length();
+	stream << (char)(data.flightId.length() & 0xFF);
 	stream << data.flightStatus;
 	stream << data.fuelLevel;
 	stream << data.flightId;
@@ -83,8 +83,10 @@ FlightData deserializeFlightData(bitstream stream) {
 
 	BitstreamByte_p ptr = stream.start();
 	
-	memcpy(&flightData.Length, ptr, sizeof(int));
-	ptr += sizeof(int);
+	char x;
+	memcpy(&x, ptr, sizeof(char));
+	ptr += sizeof(char);
+	flightData.Length = x;
 
 	memcpy(&flightData.flightStatus, ptr, sizeof(bool));
 	ptr += sizeof(bool);
@@ -94,7 +96,6 @@ FlightData deserializeFlightData(bitstream stream) {
 
 	// Calculate size of flightData
 	int strLen = flightData.Length; // Length of string
-	std::cout << "strlen is " << strLen << std::endl;
 	char* str = new char[strLen + 1]();
 
 	// Copy data into char array

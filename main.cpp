@@ -1,7 +1,6 @@
 #include <vector>
 #include <string>
 #include "Flight.h"
-//#include <windows.networking.sockets.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -22,7 +21,7 @@ void SpawnClient(bool* stop);
 void main() {
 
 	//get input from user - number of clients to spawn
-	int numberOfClients = 100;
+	int numberOfClients = 1;
 	bool stop = false;
 	std::vector<std::thread*> clientThreads;
 
@@ -51,7 +50,8 @@ void SpawnClient(bool* stop)
 	//std::thread* sendingThread = nullptr;
 	//std::vector<FlightData*>* transmissions = new std::vector<FlightData*>();
 	Client c;
-	c.setConnectionAddr("127.0.0.1", 1234).connect();
+	c.setConnectionAddr("10.144.104.228", 23512).connect();
+	//c.setConnectionAddr("127.0.0.1", 23512).connect();
 
 
 	std::cout << "Connected to server" << std::endl;
@@ -113,6 +113,9 @@ void SpawnClient(bool* stop)
 		// Serialize
 		bitstream stream = serializeFlightData(flightData);
 
+		//FlightData newDat = deserializeFlightData(stream);
+		//std::cout << flightData.flightId << " - " << newDat.flightId << "Fuel level" << std::endl;
+
 
 		//transmissions->push_back(flightData);
 		if (timeLast == 0) {
@@ -122,6 +125,8 @@ void SpawnClient(bool* stop)
 		// Wait for sim delay
 		unsigned long long int simDelay = flightData.timeSinceEpoch - timeLast;
 		Sleep(simDelay * 1000);
+
+		
 
 		// Send stream
 		c.send(stream);

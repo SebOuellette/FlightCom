@@ -8,9 +8,10 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
+#include <windows.networking.sockets.h>
 #define SHTDWN_BOTH SD_BOTH
 #define SLEEP_TIME(nSeconds) (Sleep(nSeconds) )
-#define SET_ADDR_PTR(ipAddr, sockaddrObject) (inet_pton(AF_INET, ipAddr, sockaddrObject))
+#define SET_ADDR_PTR(ipAddr, sockaddrObject) (inet_addr(ipAddr))
 #define GET_STR_ADDR(sin_addr) (winStrAddr(sin_addr))
 #elif __linux__
 #include <netinet/in.h>
@@ -34,7 +35,7 @@
 
 #include "bitstream.hpp"
 
-#define PORT 3311
+#define PORT 23512
 
 typedef int Socket;
 typedef const char* IP;
