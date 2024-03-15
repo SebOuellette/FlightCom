@@ -5,14 +5,15 @@
 #include <iomanip>
 #include <cstring>
 #include <ctime>
+#include "bitstream.hpp"
 
 struct FlightData
 {
-	unsigned int Length;
+	int Length;
 	bool flightStatus;
 	double fuelLevel;
 	std::string flightId;
-	time_t timeSinceEpoch;
+	int timeSinceEpoch;
 
 public:
 	FlightData()
@@ -64,44 +65,23 @@ public:
 	}
 };
 
-// Serialize FlightData into a byte stream
-std::string SerializeFlightData(const FlightData& flightData) {
-	std::ostringstream oss;
+// Function to serialize FlightData
+bitstream& serializeFlightData(const FlightData& data) {
+	bitstream stream;
+	stream << data.Length;
+	stream << data.flightStatus;
+	stream << data.fuelLevel;
+	stream << data.flightId;
+	stream << data.timeSinceEpoch;
 
-	oss.write(reinterpret_cast<const char*>(&flightData.flightStatus), sizeof(bool));
-	oss.write(reinterpret_cast<const char*>(&flightData.Length), sizeof(unsigned int));
-	oss.write(reinterpret_cast<const char*>(&flightData.fuelLevel), sizeof(double));
-
-	// Serialize flightId length and data separately
-	unsigned int flightIdLength = flightData.flightId.length();
-	oss.write(reinterpret_cast<const char*>(&flightIdLength), sizeof(unsigned int));
-	oss.write(flightData.flightId.c_str(), flightIdLength);
-
-	oss.write(reinterpret_cast<const char*>(&flightData.timeSinceEpoch), sizeof(time_t));
-
-	return oss.str();
+	return stream;
 }
 
 // Deserialize a byte stream into FlightData
-FlightData DeserializeFlightData(const std::string& data) {
+FlightData deserializeFlightData(bitstream stream) {
 	FlightData flightData;
 
-	std::istringstream iss(data);
-
-	iss.read(reinterpret_cast<char*>(&flightData.flightStatus), sizeof(bool));
-	iss.read(reinterpret_cast<char*>(&flightData.Length), sizeof(unsigned int));
-	iss.read(reinterpret_cast<char*>(&flightData.fuelLevel), sizeof(double));
-
-	// Deserialize flightId length and data separately
-	unsigned int flightIdLength;
-	iss.read(reinterpret_cast<char*>(&flightIdLength), sizeof(unsigned int));
-
-	std::vector<char> flightIdBuffer(flightIdLength + 1);
-	iss.read(flightIdBuffer.data(), flightIdLength);
-	flightIdBuffer[flightIdLength] = '\0'; // Null-terminate the string
-	flightData.flightId = flightIdBuffer.data();
-
-	iss.read(reinterpret_cast<char*>(&flightData.timeSinceEpoch), sizeof(time_t));
+	memcpy(&flightData, stream.start(), sizeof(FlightData));
 
 	return flightData;
 }
