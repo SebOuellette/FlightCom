@@ -141,9 +141,7 @@ void activeFlight(std::atomic<Flight*> connection)
 
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path)
 {
-	std::string filepath = path;
-
-	std::ofstream fStreamout(filepath + flightID + ".txt", std::ios_base::app | std::ios_base::out);
+	std::ofstream fStreamout(path + flightID + ".txt", std::ios_base::app | std::ios_base::out);
 	if (fStreamout.is_open())
 	{
 		std::string src = flightID + " - " + std::to_string(fuelConsumption)+ "ga/sec" + " elapsed: " + std::to_string(timeElapsed) + "\n";
