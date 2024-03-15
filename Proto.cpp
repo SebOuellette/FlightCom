@@ -104,7 +104,7 @@ Socket Protocol::acceptConnection(Socket listenSocket, Address* resAddr) {
     Socket replySocket = accept(listenSocket, (struct sockaddr*)resAddr, &addr_size);
 
     std::cout << "Accepted new connection from " << Protocol::addrToString(*resAddr) << std::endl;
-
+       
     return replySocket;
 }
 
@@ -138,7 +138,7 @@ void Protocol::logErr(int _errno) {
 
 std::string winStrAddr(IN_ADDR* sin_addr)
 {
-    char buffer[sizeof(sin_addr)] = { 0 }; 
+    char buffer[PACKET_SIZE] = { 0 }; 
     return std::string(inet_ntop(AF_INET, sin_addr, buffer, sizeof(buffer)));
 }
 

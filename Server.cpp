@@ -70,6 +70,7 @@ void Server::setListenSocket(Connection socket)
 Socket Server::accept() {
     /// Accept call creates a new socket for the incoming connection
     this->replySocket.socket = Protocol::acceptConnection(this->getServerSocket(), &this->replySocket.addr);
+    std::cout << this->replySocket.socket << std::endl;
 
     return this->getReplySocket();
 }

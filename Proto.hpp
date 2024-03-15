@@ -32,6 +32,7 @@
 #include <iostream>
 #include "bitstream.hpp"
 #define PORT 23512
+#define PACKET_SIZE 24
 
 typedef int Socket;
 typedef const char* IP;
