@@ -19,7 +19,7 @@ void SpawnClient(bool* stop);
 #pragma comment(lib, "Ws2_32.lib")
 
 void main() {
-
+	srand(time(0));
 	//get input from user - number of clients to spawn
 	int numberOfClients = 1;
 	bool stop = false;
@@ -39,7 +39,7 @@ void main() {
 	for (std::thread*& client : clientThreads)
 	{
 		client->join();
-		delete[] client;
+		delete client;
 	}
 	//End of Program
 }
@@ -50,8 +50,8 @@ void SpawnClient(bool* stop)
 	//std::thread* sendingThread = nullptr;
 	//std::vector<FlightData*>* transmissions = new std::vector<FlightData*>();
 	Client c;
-	c.setConnectionAddr("10.144.104.228", 23512).connect();
-	//c.setConnectionAddr("127.0.0.1", 23512).connect();
+	//c.setConnectionAddr("10.144.104.228", 23512).connect();
+	c.setConnectionAddr("127.0.0.1", 23512).connect();
 
 
 	std::cout << "Connected to server" << std::endl;
@@ -76,7 +76,7 @@ void SpawnClient(bool* stop)
 	int maxRange = 3;
 
 	//randomize record selection (doesn't have to be true randomization)
-	srand(time(0));
+	//
 	int randomNumber = minRange + std::rand() % (maxRange - minRange + 1);
 
 	// Open selected randomized file
@@ -124,6 +124,7 @@ void SpawnClient(bool* stop)
 
 		// Wait for sim delay
 		unsigned long long int simDelay = flightData.timeSinceEpoch - timeLast;
+		std::cout << "delay: " << simDelay << std::endl;
 		Sleep(simDelay * 1000);
 
 		
@@ -138,6 +139,9 @@ void SpawnClient(bool* stop)
 	//Send EOF signal -> data packet with flightStatus == false
 	flightData = new FlightData();
 	flightData->flightStatus = false;
+	
+	bitstream finalStream = serializeFlightData(*flightData);
+	c.send(finalStream);
 	//transmissions->push_back(flightData);
 	*stop = true;
 	//sendingThread->join();
