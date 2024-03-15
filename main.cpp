@@ -19,6 +19,10 @@ std::condition_variable writeWakeUp;
 #pragma comment(lib, "Ws2_32.lib")
 void main()
 {
+	WSADATA wsaData;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+		return;
+
 	bool shutdown = false;
 	auto flightRepository = std::make_shared<std::vector<std::pair<std::thread*, Flight*>>>();
 	std::thread listener(listeningThread, flightRepository, &shutdown);
@@ -62,9 +66,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 	std::vector<Config> serverSocketConfigs = configReader.readConfig();
 	//there is only one that we need - better than hardcoding a 0
 
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-		return;
+	
 
 	Server flightListener(serverSocketConfigs.front().address);
 
@@ -77,10 +79,12 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 		flightConnection.socket = flightListener.getReplySocket();
 		Flight* flight = new Flight(flightConnection);
 
-		std::thread* connectionThread = new std::thread(activeFlight, flight);
+		//std::thread* connectionThread = new std::thread(activeFlight, flight);
 
-		std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
-		flightRepository->push_back(newPair);
+
+		//std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
+		//flightRepository->push_back(newPair);
+		activeFlight(flight);
 
 		for (int i = 0; i < flightRepository->size(); i++)
 		{

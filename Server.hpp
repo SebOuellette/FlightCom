@@ -8,6 +8,8 @@
 class Server : private EndDevice {
 private:
     Connection listenSocket;
+
+protected:
     Connection replySocket;
 
 public:

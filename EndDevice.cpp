@@ -19,7 +19,7 @@ bitstream EndDevice::recv(int socket, int_l size) {
     bitstream stream;
 
     // Receive the message from the server
-    int n = ::recv(socket, (char*)buffer2, size, IPPROTO_TCP);
+    int n = ::recv(socket, (char*)buffer2, size, 0);
 
     if (RECV_ERR(n)) {
         int resCode = WSAGetLastError();

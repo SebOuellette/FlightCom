@@ -6,14 +6,14 @@ std::string linStrAddr(IN_ADDR* sin_addr);
 
 Protocol::Protocol() {
     std::cout << "Protocol constructor" << std::endl;
-    if (WSAStartup(MAKEWORD(2, 2), &this->wsaData) != 0) {
+   /* if (WSAStartup(MAKEWORD(2, 2), &this->wsaData) != 0) {
         std::cerr << "WSAStartup failed\n";
         exit(-1);
-    }
+    }*/
 }
 
 Protocol::~Protocol() {
-    WSACleanup();
+    /*WSACleanup();*/
 }
 
 /// Create a new socket fd
@@ -101,7 +101,11 @@ int Protocol::bindSocket(Socket socket, Address* serverAddr, unsigned int maxAtt
 /// Accepts a connection, and returns a socket in which to respond to the new client.
 Socket Protocol::acceptConnection(Socket listenSocket, Address* resAddr) {
     socklen_t addr_size = sizeof(*resAddr);
-    Socket replySocket = accept(listenSocket, (struct sockaddr*)resAddr, &addr_size);
+    Socket replySocket = accept(listenSocket, reinterpret_cast<sockaddr*>(resAddr), &addr_size);
+
+    Sleep(1000);
+
+    
 
     std::cout << "Accepted new connection from " << Protocol::addrToString(*resAddr) << std::endl;
 
@@ -138,7 +142,7 @@ void Protocol::logErr(int _errno) {
 
 std::string winStrAddr(IN_ADDR* sin_addr)
 {
-    char buffer[sizeof(sin_addr)] = { 0 }; 
+    char buffer[24] = { 0 }; 
     return std::string(inet_ntop(AF_INET, sin_addr, buffer, sizeof(buffer)));
 }
 
