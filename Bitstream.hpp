@@ -92,7 +92,7 @@ public:
 
 	// Constructor | Nullify data, prepare the class
 	bitstream();
-	bitstream(bitstream& stream);
+	bitstream(const bitstream& stream);
 
 	// Deconstructor | Free the block of data
 	~bitstream();
