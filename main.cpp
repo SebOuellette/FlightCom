@@ -122,7 +122,7 @@ void activeFlight(std::atomic<Flight*> connection)
 		flightStatus = flightConnection->getFlightStatus();
 		connection.store(flightConnection);
 
-		fuelSpent = (fuelAtLastTransmission == 0) ? 0 : data.fuelLevel - fuelAtLastTransmission;
+		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : data.fuelLevel - fuelAtLastTransmission;
 		fuelAtLastTransmission = data.fuelLevel;
 		timespan += (timeAtLastTransmission == 0) ? 0 : data.timeSinceEpoch - timeAtLastTransmission;
 		timeAtLastTransmission = data.timeSinceEpoch;
