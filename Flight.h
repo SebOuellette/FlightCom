@@ -66,7 +66,7 @@ public:
 };
 
 // Function to serialize FlightData
-bitstream& serializeFlightData(const FlightData& data) {
+bitstream serializeFlightData(const FlightData& data) {
 	bitstream stream;
 	stream << (int)data.flightId.length();
 	stream << data.flightStatus;
