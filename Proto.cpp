@@ -105,10 +105,10 @@ Socket Protocol::acceptConnection(Socket listenSocket, Address* resAddr) {
 
     Sleep(1000);
 
-    
+
 
     std::cout << "Accepted new connection from " << Protocol::addrToString(*resAddr) << std::endl;
-
+       
     return replySocket;
 }
 

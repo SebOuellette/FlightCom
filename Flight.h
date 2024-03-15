@@ -4,7 +4,7 @@
 #include <map>
 #include <thread>
 #include "Server.hpp"
-
+#define PACKET_SIZE 24
 struct FlightData
 {
     unsigned char Length;
@@ -21,19 +21,13 @@ private:
     bitstream serializedflightData;
     
 public:
-    Flight(Connection connection) :Server(connection) {
-        this->flightData.flightStatus = true; 
-        this->replySocket = connection;
-    }
+    Flight(Connection connection) : Server(connection) { this->flightData.flightStatus = true; }
 
     FlightData getData()
     {
-        bitstream transmittedData = this->recv(24);
-
-
-
-        FlightData ret = deserializeFlightData(transmittedData);
-        return ret;
+        bitstream transmittedData = recv(PACKET_SIZE);
+        deserializeFlightData(transmittedData);
+        return flightData;
     }
 
     bool getFlightStatus()
