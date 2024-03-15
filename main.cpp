@@ -48,8 +48,12 @@ void main() {
 void SpawnClient(bool* stop)
 {
 	// Open connection / Connect to server
-	std::thread* sendingThread = nullptr;
-	std::vector<FlightData*>* transmissions = new std::vector<FlightData*>();
+	//std::thread* sendingThread = nullptr;
+	//std::vector<FlightData*>* transmissions = new std::vector<FlightData*>();
+	Client c;
+	c.setConnectionAddr("127.0.0.1", 1234).connect();
+
+
 	std::cout << "Connected to server" << std::endl;
 
 	FlightData* flightData = nullptr;
@@ -86,65 +90,55 @@ void SpawnClient(bool* stop)
 	// Get the first line which we dont need for the circumstance and ignore it
 	std::getline(readFile, line);
 
-	sendingThread = new std::thread(ClientConnection, transmissions);
+	//sendingThread = new std::thread(ClientConnection, transmissions);
 
 	// loop and read file until the EOF
+	unsigned long long int timeLast = 0;
 	while (std::getline(readFile, line))
 	{
 		ParseLine(line, currentFuel, time);
-		flightData = new FlightData();
+		FlightData flightData;
 		// initialize data packet
-		flightData->flightStatus = true;
-		flightData->fuelLevel = currentFuel;
-		flightData->timeSinceEpoch = time;
-		flightData->Length = 64;
+		flightData.flightStatus = true;
+		flightData.fuelLevel = currentFuel;
+		flightData.timeSinceEpoch = time;
+		flightData.Length = 64;
 		// only send the flightId for the first packet
 		if (firstPacket == true)
 		{
-			flightData->flightId = flightID;
+			flightData.flightId = flightID;
 			firstPacket = false;
 		}
-		transmissions->push_back(flightData);
+
+		// Serialize
+		bitstream stream = serializeFlightData(flightData);
+
+
+		//transmissions->push_back(flightData);
+		if (timeLast == 0) {
+			timeLast = flightData.timeSinceEpoch;
+		}
+
+		// Wait for sim delay
+		unsigned long long int simDelay = flightData.timeSinceEpoch - timeLast;
+		Sleep(simDelay * 1000);
+
+		// Send stream
+		c.send(stream);
+
+		// Set timeLast
+		timeLast = flightData.timeSinceEpoch;
 	}
 
 	//Send EOF signal -> data packet with flightStatus == false
 	flightData = new FlightData();
 	flightData->flightStatus = false;
-	transmissions->push_back(flightData);
+	//transmissions->push_back(flightData);
 	*stop = true;
-	sendingThread->join();
-	delete[] sendingThread;
+	//sendingThread->join();
+	//delete[] sendingThread;
 	//close connection
 }
-
-
-void ClientConnection(std::vector<FlightData*>* dataStreams)
-{
-	int currentIndex = 0;
-	IP serverIP = "192.168.50.12";
-	bool transmissionStatus = true;
-
-	Client* clientConnection = new Client();
-	clientConnection->setConnectionAddr(serverIP, 23512);
-	clientConnection->connect();
-
-	do
-	{
-		if (dataStreams->empty())
-			continue;
-
-		FlightData* currentTransmission = dataStreams->at(currentIndex);
-		transmissionStatus = currentTransmission->flightStatus;
-
-		bitstream stream;
-		stream = serializeFlightData(*currentTransmission);
-		clientConnection->send(stream);
-
-	} while (transmissionStatus == true);
-	delete[] clientConnection;
-}
-
-
 
 void ParseLine(std::string line, double& currentFuel, time_t& time)
 {
