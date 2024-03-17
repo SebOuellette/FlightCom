@@ -163,7 +163,7 @@ void activeFlight(Flight* connection)
 		//calculation
 		flightStatus = flightConnection->getFlightStatus();
 
-		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : data->fuelLevel - fuelAtLastTransmission;
+		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : fuelAtLastTransmission - data->fuelLevel;
 		fuelAtLastTransmission = data->fuelLevel;
 		timespan += (timeAtLastTransmission == 0) ? 0 : data->timeSinceEpoch - timeAtLastTransmission;
 		timeAtLastTransmission = data->timeSinceEpoch;
