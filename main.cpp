@@ -141,36 +141,36 @@ void activeFlight(Flight* connection)
 			break;
 		}
 
-		FlightData data = flightConnection->deserializeFlightData(transmission, first);
-		std::cout << "ID: " << data.flightId << std::endl;
-		std::cout << "Time: " << data.timeSinceEpoch << std::endl;
+		FlightData* data = flightConnection->deserializeFlightData(transmission, first);
+		std::cout << "ID: " << data->flightId << std::endl;
+		std::cout << "Time: " << data->timeSinceEpoch << std::endl;
 
 		if (first)
 		{
-			flightID = data.flightId;
+			flightID = data->flightId;
 			first = false;
 		}
 		else
-			data.flightId = flightID;
+			data->flightId = flightID;
 
 		//write lock
 		
-		if (data.fuelLevel = 0) {
-			std::cout << "Fuel: " << data.fuelLevel << std::endl;
+		if (data->fuelLevel == 0) {
+			std::cout << "Fuel: " << data->fuelLevel << std::endl;
 			break;
 		}
 
 		//calculation
 		flightStatus = flightConnection->getFlightStatus();
 
-		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : data.fuelLevel - fuelAtLastTransmission;
-		fuelAtLastTransmission = data.fuelLevel;
-		timespan += (timeAtLastTransmission == 0) ? 0 : data.timeSinceEpoch - timeAtLastTransmission;
-		timeAtLastTransmission = data.timeSinceEpoch;
+		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : data->fuelLevel - fuelAtLastTransmission;
+		fuelAtLastTransmission = data->fuelLevel;
+		timespan += (timeAtLastTransmission == 0) ? 0 : data->timeSinceEpoch - timeAtLastTransmission;
+		timeAtLastTransmission = data->timeSinceEpoch;
 		if (timespan != 0)
 		{
 			avgConsumption = fuelSpent / timespan;
-			saveData(data.flightId, avgConsumption, timespan, "./");
+			saveData(data->flightId, avgConsumption, timespan, "./");
 		}
 	}
 

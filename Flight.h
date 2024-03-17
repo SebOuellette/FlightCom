@@ -51,11 +51,11 @@ public:
     }
 
     // Deserialize a byte stream into FlightData
-    FlightData deserializeFlightData(bitstream stream, bool flightIDToggle) {
+    FlightData* deserializeFlightData(bitstream stream, bool flightIDToggle) {
 
         BitstreamByte_p ptr = stream.start();
 
-        memcpy(&flightData->Length, ptr, sizeof(char));
+        memcpy(&flightData->Length, ptr, sizeof(unsigned char));
         ptr += sizeof(char);
 
         flightData->flightStatus = (bool)ptr;
@@ -81,7 +81,7 @@ public:
         memcpy(&flightData->timeSinceEpoch, ptr, sizeof(int));
         ptr += sizeof(int);
 
-        return *flightData;
+        return flightData;
     }
 
     ~Flight()
