@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "Proto.hpp"
+#include <atomic>
 #include "EndDevice.hpp"
 
 class Server : private EndDevice {

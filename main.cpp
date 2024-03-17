@@ -41,50 +41,69 @@ void main()
 		
 		switch (opt)
 		{
-		case 1:
+		case 10:
 			shutdown = true;
 		default:
 			break;
 		}
 
 	}
-	for (int i = 0; i < flightRepository->size(); i++)
+	if (!flightRepository->empty())
 	{
-		delete flightRepository->at(i).second;
-		flightRepository->at(i).first->join();
-		delete flightRepository->at(i).first;
-		flightRepository->erase(flightRepository->begin() + i);
+		for (int i = 0; i < flightRepository->size(); i++)
+		{
+			delete flightRepository->at(i).second;
+			flightRepository->at(i).first->join();
+			delete flightRepository->at(i).first;
+			flightRepository->erase(flightRepository->begin() + i);
+		}
 	}
+	
 
 	listener.join();
 
 }
 
-void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown)
+void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* abort)
 {
 	ConfigReader configReader("./config.txt");
 	std::vector<Config> serverSocketConfigs = configReader.readConfig();
 	//there is only one that we need - better than hardcoding a 0
 
-	
+	Connection flightConnection;
+	flightConnection.addr = Address();
+	flightConnection.socket = Socket();
 
 	Server flightListener(serverSocketConfigs.front().address);
+	Socket listenerSocket = flightListener.getServerSocket();
+	fd_set set;
+	FD_ZERO(&set);
+	FD_SET(listenerSocket, &set);
+	struct timeval listenTimeout;
 
-	while (!*shutdown)
+	listenTimeout.tv_sec = 5;
+	listenTimeout.tv_usec = 0;
+	int status = 0;
+
+
+
+	while (!*abort)
 	{
-		flightListener.accept();
-
-		Connection flightConnection;
-		flightConnection.addr = flightListener.getReplyAddr();
-		flightConnection.socket = flightListener.getReplySocket();
-		Flight* flight = new Flight(flightConnection);
-
-		std::thread* connectionThread = new std::thread(activeFlight, flight);
-
-
-		std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
-		flightRepository->push_back(newPair);
-		//activeFlight(flight);
+		status = select(listenerSocket, &set, NULL, NULL, &listenTimeout);
+		if (status == -1 || status == 0)
+		{
+			Sleep(1000);
+		}
+		else
+		{
+			flightConnection.socket = flightListener.accept();
+			flightConnection.addr = flightListener.getReplyAddr();
+			std::cout << "Accepted Flight Connection!" << std::endl;
+			Flight* flight = new Flight(flightConnection);
+			std::thread* connectionThread = new std::thread(activeFlight, flight);
+			std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
+			flightRepository->push_back(newPair);
+		}
 
 		for (int i = 0; i < flightRepository->size(); i++)
 		{
@@ -96,6 +115,12 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 				flightRepository->erase(flightRepository->begin() + i);
 			}
 		}
+		if (*abort)
+		{
+			shutdown(flightConnection.socket, SHTDWN_BOTH);
+			break;
+		}
+		std::cout << "Listening for more connections..." << std::endl;
 	}
 }
 
@@ -107,6 +132,7 @@ void activeFlight(std::atomic<Flight*> connection)
 	double timeAtLastTransmission = 0;
 	double avgConsumption = 0;
 	bool flightStatus = true;
+	std::string flightID = "";
 	Flight* flightConnection = nullptr;
 	FlightData data;
 
@@ -116,10 +142,24 @@ void activeFlight(std::atomic<Flight*> connection)
 		if (!connection.is_lock_free())
 			continue;
 
-		flightConnection = connection.load(std::memory_order_relaxed);
-		data = flightConnection->getData(first);
+		flightConnection = connection.load(std::memory_order_seq_cst);
+		bitstream transmission = flightConnection->getData(first);
+		data = flightConnection->deserializeFlightData(transmission, first);
 
-		std::cout << "Length: " << data.fuelLevel << std::endl;
+		if (first)
+		{
+			flightID = data.flightId;
+			first = false;
+		}
+		else
+			data.flightId = flightID;
+
+		//write lock
+		{
+			std::scoped_lock writeLock(lock);
+			std::cout << "Length: " << data.fuelLevel << std::endl;
+		}
+		
 		if (data.fuelLevel = 0) {
 			break;
 		}
@@ -135,11 +175,7 @@ void activeFlight(std::atomic<Flight*> connection)
 		if (timespan != 0)
 		{
 			avgConsumption = fuelSpent / timespan;
-
-			{
-				//std::scoped_lock fileLock(lock);
-				saveData(data.flightId, avgConsumption, timespan, "/");
-			}	
+			saveData(data.flightId, avgConsumption, timespan, "./");
 		}
 	}
 }

@@ -17,74 +17,81 @@ struct FlightData
 
 class Flight : public Server {
 private:
-    FlightData flightData;
+    FlightData* flightData;
     bitstream serializedflightData;
     
 public:
     Flight(Connection connection) : Server(connection) { 
-        this->flightData.flightStatus = true;
+
+        flightData = new FlightData();
+        flightData->flightStatus = true;
         this->replySocket = connection;
     }
 
-    FlightData getData(bool &firstPacket)
+    bitstream getData(bool &firstPacket)
     {
         int size = firstPacket ? PACKET_SIZE : PACKET_SIZE-10;
         bitstream transmittedData = recv(size);
-        firstPacket = false;
 
         // Check if connection closed
         if (!(transmittedData.size() == PACKET_SIZE || transmittedData.size() == PACKET_SIZE - 10)) {
-            this->flightData.flightStatus = false;
+            flightData->flightStatus = false;
 
             std::cout << "Packet invalid, closing connection whatever " << transmittedData.size() << std::endl;
 
-            FlightData d;
-            d.fuelLevel = 0;
+            bitstream d;
             return d;
         }
-
-        FlightData flight = deserializeFlightData(transmittedData);
-        return flight;
+        if (transmittedData.size() == 0)
+        {
+            //something is wrong
+            int something = 0;
+        }
+        return transmittedData;
     }
 
     bool getFlightStatus()
     {
-        return flightData.flightStatus;
+        bool status = flightData->flightStatus;
+        return status;
     }
 
     // Deserialize a byte stream into FlightData
-    FlightData deserializeFlightData(bitstream stream) {
-        FlightData flightData;
+    FlightData deserializeFlightData(bitstream stream, bool flightIDToggle) {
 
         BitstreamByte_p ptr = stream.start();
 
-        memcpy(&flightData.Length, ptr, sizeof(int));
+        memcpy(&flightData->Length, ptr, sizeof(int));
         ptr += sizeof(int);
 
-        memcpy(&flightData.flightStatus, ptr, sizeof(bool));
+        memcpy(&flightData->flightStatus, ptr, sizeof(bool));
         ptr += sizeof(bool);
 
-        memcpy(&flightData.fuelLevel, ptr, sizeof(double));
+        memcpy(&flightData->fuelLevel, ptr, sizeof(double));
         ptr += sizeof(double);
 
-        // Calculate size of flightData
-        int strLen = 10;// flightData.Length - 2 * sizeof(int) - sizeof(bool) - sizeof(double) - 10;
-        std::cout << "strlen is " << strLen << std::endl;
-        char* str = new char[strLen + 1]();
+        if (flightIDToggle)
+        {
+            flightData->flightId = "999";
+            char* str = new char[10 + 1]();
+            memcpy(str, ptr, 10);//#define the clientID length 
+            ptr += 10;
 
-        // Copy data into char array
-        memcpy(str, ptr, strLen);
-        // Copy char array to string
-        flightData.flightId = str;
+            // Copy char array to string
+            flightData->flightId = str;
+            delete[] str;
+        }
 
-        delete[] str;
-        ptr += strLen;
-
-        memcpy(&flightData.timeSinceEpoch, ptr, sizeof(int));
+        memcpy(&flightData->timeSinceEpoch, ptr, sizeof(int));
         ptr += sizeof(int);
 
+        return *flightData;
+    }
 
-        return flightData;
+    ~Flight()
+    {
+        if(flightData != nullptr)
+            delete flightData;
     }
 };
 
