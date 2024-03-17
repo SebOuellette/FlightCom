@@ -35,17 +35,9 @@ public:
 
         // Check if connection closed
         if (!(transmittedData.size() == PACKET_SIZE || transmittedData.size() == PACKET_SIZE - 10)) {
-            //flightData->flightStatus = false;
-
             std::cout << "Packet invalid, retrying receive. " << transmittedData.size() << std::endl;
+        }
 
-            return transmittedData;
-        }
-        if (transmittedData.size() == 0)
-        {
-            //something is wrong
-            int something = 0;
-        }
         return transmittedData;
     }
 
@@ -55,8 +47,7 @@ public:
 
     bool getFlightStatus()
     {
-        bool status = flightData->flightStatus;
-        return status;
+        return this->flightData->flightStatus;
     }
 
     // Deserialize a byte stream into FlightData
@@ -67,9 +58,9 @@ public:
         memcpy(&flightData->Length, ptr, sizeof(int));
         ptr += sizeof(int);
 
-        memcpy(&flightData->flightStatus, ptr, sizeof(bool));
+        flightData->flightStatus = (bool)ptr;
         ptr += sizeof(bool);
-
+            
         memcpy(&flightData->fuelLevel, ptr, sizeof(double));
         ptr += sizeof(double);
 

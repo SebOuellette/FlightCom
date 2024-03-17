@@ -36,6 +36,8 @@ bitstream EndDevice::recv(int socket, int_l size) {
     // Display the message
     stream.serialize(buffer2, n);
 
+    std::cout << stream.size() << std::endl;
+
     delete[] buffer2;
 
     return stream;

@@ -69,53 +69,31 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 	ConfigReader configReader("./config.txt");
 	std::vector<Config> serverSocketConfigs = configReader.readConfig();
 	//there is only one that we need - better than hardcoding a 0
-
-	//Connection flightConnection;
-	//flightConnection.addr = Address();
-	//flightConnection.socket = Socket();
-
+	
+	// Create the server we will use to listen for incoming connections
 	Server flightListener(serverSocketConfigs.front().address);
 	Socket listenerSocket = flightListener.getServerSocket();
-	fd_set set;
-	FD_ZERO(&set);
-	FD_SET(listenerSocket, &set);
-	struct timeval listenTimeout;
 
-	listenTimeout.tv_sec = 0;
-	listenTimeout.tv_usec = 0;
-	int status = 0;
-
-
-
+	// Loop until the server is told to close
 	while (!*abort)
 	{
-		//std::cout << "Listenloop" << std::endl;
-		//status = select(listenerSocket, &set, NULL, NULL, &listenTimeout);
-		//if (status == -1)
-		//{
-		//	std::cout <<"Error: " << WSAGetLastError() << std::endl;
-		//	Sleep(1000);
-		//	// On error, stop
-		//	continue;
 
-		//}
-		//else if (status == 0) {
-		//	std::cout << "timeout" << std::endl;
-		//	continue;
-		//}
-		//else
-		//{
-			std::cout << "Accepting..." << std::endl;
-			Connection flightConnection;
-			flightConnection.socket = flightListener.accept();
-			flightConnection.addr = flightListener.getReplyAddr();
-			std::cout << "Accepted Flight Connection!" << std::endl;
-			Flight* flight = new Flight(flightConnection);
-			std::thread* connectionThread = new std::thread(activeFlight, flight);
-			std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
-			flightRepository->push_back(newPair);
-		//}
+		// Accept new connections in a blocking manner
+		std::cout << "Accepting..." << std::endl;
+		Connection flightConnection;
+		flightConnection.socket = flightListener.accept();
+		flightConnection.addr = flightListener.getReplyAddr();
 
+		// Map the connection to the action thread
+		std::cout << "Accepted Flight Connection!" << std::endl;
+		Flight* flight = new Flight(flightConnection);
+		std::thread* connectionThread = new std::thread(activeFlight, flight);
+		std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
+
+		// Push the map to the shared list
+		flightRepository->push_back(newPair);
+
+		// CHeck if any of the threads are finished, and destroy them.
 		for (int i = 0; i < flightRepository->size(); i++)
 		{
 			if (flightRepository->at(i).second->getFlightStatus() == false)
@@ -127,12 +105,6 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 				flightRepository->erase(flightRepository->begin() + i);
 			}
 		}
-		/*if (*abort)
-		{
-			std::cout << "Abording connection" << std::endl;
-			shutdown(flightConnection.socket, SHTDWN_BOTH);
-			break;
-		}*/
 		std::cout << "Listening for more connections..." << std::endl;
 	}
 }
@@ -152,22 +124,19 @@ void activeFlight(Flight* connection)
 	bool first = true;
 	while (flightConnection->getFlightStatus())
 	{
-
-		/*if (!connection.is_lock_free())
-			continue;*/
-
-		//flightConnection = connection.load(std::memory_order_seq_cst);
 		bitstream transmission = flightConnection->getData(first);
 
 		std::cout << "size is " << transmission.size() << std::endl;
 
 		// Transmission had an error, size will always be 0
 		if (transmission.size() == 0) {
+			std::cout << "Empty packet" << std::endl;
 			flightConnection->disconnect();
 			break;
 		}
 
 		if (transmission.size() == 1) {
+			std::cout << "Error packet" << std::endl;
 			flightConnection->disconnect();
 			break;
 		}
@@ -191,7 +160,6 @@ void activeFlight(Flight* connection)
 
 		//calculation
 		flightStatus = flightConnection->getFlightStatus();
-		//connection.store(flightConnection);
 
 		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : data.fuelLevel - fuelAtLastTransmission;
 		fuelAtLastTransmission = data.fuelLevel;
