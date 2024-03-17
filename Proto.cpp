@@ -103,7 +103,7 @@ Socket Protocol::acceptConnection(Socket listenSocket, Address* resAddr) {
     socklen_t addr_size = sizeof(*resAddr);
     Socket replySocket = accept(listenSocket, reinterpret_cast<sockaddr*>(resAddr), &addr_size);
 
-    Sleep(1000);
+    //Sleep(1000);
 
 
 
@@ -119,7 +119,7 @@ int Protocol::shutdownSocket(Socket socket) {
 
     if (success != 0) {
         std::cerr << "Failed to safely close socket" << std::endl;
-        Protocol::logErr(derr);
+        Protocol::logErr(success);
 
         return derr;
     }

@@ -35,12 +35,11 @@ public:
 
         // Check if connection closed
         if (!(transmittedData.size() == PACKET_SIZE || transmittedData.size() == PACKET_SIZE - 10)) {
-            flightData->flightStatus = false;
+            //flightData->flightStatus = false;
 
-            std::cout << "Packet invalid, closing connection whatever " << transmittedData.size() << std::endl;
+            std::cout << "Packet invalid, retrying receive. " << transmittedData.size() << std::endl;
 
-            bitstream d;
-            return d;
+            return transmittedData;
         }
         if (transmittedData.size() == 0)
         {
@@ -48,6 +47,10 @@ public:
             int something = 0;
         }
         return transmittedData;
+    }
+
+    void disconnect() {
+        this->flightData->flightStatus = false;
     }
 
     bool getFlightStatus()
@@ -70,12 +73,14 @@ public:
         memcpy(&flightData->fuelLevel, ptr, sizeof(double));
         ptr += sizeof(double);
 
-        if (flightIDToggle)
+        flightData->flightId = "999";
+        if (flightData->Length > 0)
         {
-            flightData->flightId = "999";
-            char* str = new char[10 + 1]();
-            memcpy(str, ptr, 10);//#define the clientID length 
-            ptr += 10;
+            
+            char* str = new char[flightData->Length + 1]();
+            str[flightData->Length] = 0;
+            memcpy(str, ptr, flightData->Length);//#define the clientID length 
+            ptr += flightData->Length;
 
             // Copy char array to string
             flightData->flightId = str;

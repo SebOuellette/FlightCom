@@ -10,7 +10,7 @@
 #include <mutex>
 #include <condition_variable>
 
-void activeFlight(std::atomic<Flight*> connection);
+void activeFlight(Flight* connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
 std::mutex lock;
@@ -44,7 +44,7 @@ void main()
 		case 10:
 			shutdown = true;
 		default:
-			break;
+			continue;
 		}
 
 	}
@@ -70,9 +70,9 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 	std::vector<Config> serverSocketConfigs = configReader.readConfig();
 	//there is only one that we need - better than hardcoding a 0
 
-	Connection flightConnection;
-	flightConnection.addr = Address();
-	flightConnection.socket = Socket();
+	//Connection flightConnection;
+	//flightConnection.addr = Address();
+	//flightConnection.socket = Socket();
 
 	Server flightListener(serverSocketConfigs.front().address);
 	Socket listenerSocket = flightListener.getServerSocket();
@@ -81,7 +81,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 	FD_SET(listenerSocket, &set);
 	struct timeval listenTimeout;
 
-	listenTimeout.tv_sec = 5;
+	listenTimeout.tv_sec = 0;
 	listenTimeout.tv_usec = 0;
 	int status = 0;
 
@@ -89,13 +89,24 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 
 	while (!*abort)
 	{
-		status = select(listenerSocket, &set, NULL, NULL, &listenTimeout);
-		if (status == -1 || status == 0)
-		{
-			Sleep(1000);
-		}
-		else
-		{
+		//std::cout << "Listenloop" << std::endl;
+		//status = select(listenerSocket, &set, NULL, NULL, &listenTimeout);
+		//if (status == -1)
+		//{
+		//	std::cout <<"Error: " << WSAGetLastError() << std::endl;
+		//	Sleep(1000);
+		//	// On error, stop
+		//	continue;
+
+		//}
+		//else if (status == 0) {
+		//	std::cout << "timeout" << std::endl;
+		//	continue;
+		//}
+		//else
+		//{
+			std::cout << "Accepting..." << std::endl;
+			Connection flightConnection;
 			flightConnection.socket = flightListener.accept();
 			flightConnection.addr = flightListener.getReplyAddr();
 			std::cout << "Accepted Flight Connection!" << std::endl;
@@ -103,28 +114,30 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 			std::thread* connectionThread = new std::thread(activeFlight, flight);
 			std::pair<std::thread*, Flight*> newPair = { connectionThread, flight };
 			flightRepository->push_back(newPair);
-		}
+		//}
 
 		for (int i = 0; i < flightRepository->size(); i++)
 		{
-			if (flightRepository->at(i).second->getFlightStatus() != true)
+			if (flightRepository->at(i).second->getFlightStatus() == false)
 			{
+				std::cout << "Destroying receive thread" << std::endl;
 				delete flightRepository->at(i).second;
 				flightRepository->at(i).first->join();
 				delete flightRepository->at(i).first;
 				flightRepository->erase(flightRepository->begin() + i);
 			}
 		}
-		if (*abort)
+		/*if (*abort)
 		{
+			std::cout << "Abording connection" << std::endl;
 			shutdown(flightConnection.socket, SHTDWN_BOTH);
 			break;
-		}
+		}*/
 		std::cout << "Listening for more connections..." << std::endl;
 	}
 }
 
-void activeFlight(std::atomic<Flight*> connection)
+void activeFlight(Flight* connection)
 {
 	double fuelSpent = 0;
 	double fuelAtLastTransmission = 0;
@@ -133,18 +146,33 @@ void activeFlight(std::atomic<Flight*> connection)
 	double avgConsumption = 0;
 	bool flightStatus = true;
 	std::string flightID = "";
-	Flight* flightConnection = nullptr;
-	FlightData data;
+	Flight* flightConnection = connection;
+	
 
 	bool first = true;
-	while (flightStatus)
+	while (flightConnection->getFlightStatus())
 	{
-		if (!connection.is_lock_free())
-			continue;
 
-		flightConnection = connection.load(std::memory_order_seq_cst);
+		/*if (!connection.is_lock_free())
+			continue;*/
+
+		//flightConnection = connection.load(std::memory_order_seq_cst);
 		bitstream transmission = flightConnection->getData(first);
-		data = flightConnection->deserializeFlightData(transmission, first);
+
+		std::cout << "size is " << transmission.size() << std::endl;
+
+		// Transmission had an error, size will always be 0
+		if (transmission.size() == 0) {
+			flightConnection->disconnect();
+			break;
+		}
+
+		if (transmission.size() == 1) {
+			flightConnection->disconnect();
+			break;
+		}
+
+		FlightData data = flightConnection->deserializeFlightData(transmission, first);
 
 		if (first)
 		{
@@ -155,18 +183,15 @@ void activeFlight(std::atomic<Flight*> connection)
 			data.flightId = flightID;
 
 		//write lock
-		{
-			std::scoped_lock writeLock(lock);
-			std::cout << "Length: " << data.fuelLevel << std::endl;
-		}
 		
 		if (data.fuelLevel = 0) {
+			std::cout << "Fuel: " << data.fuelLevel << std::endl;
 			break;
 		}
 
 		//calculation
 		flightStatus = flightConnection->getFlightStatus();
-		connection.store(flightConnection);
+		//connection.store(flightConnection);
 
 		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : data.fuelLevel - fuelAtLastTransmission;
 		fuelAtLastTransmission = data.fuelLevel;
@@ -178,6 +203,8 @@ void activeFlight(std::atomic<Flight*> connection)
 			saveData(data.flightId, avgConsumption, timespan, "./");
 		}
 	}
+
+	std::cout << "FLight Status is false" << std::endl;
 }
 
 
