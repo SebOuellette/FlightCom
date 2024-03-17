@@ -55,8 +55,8 @@ public:
 
         BitstreamByte_p ptr = stream.start();
 
-        memcpy(&flightData->Length, ptr, sizeof(int));
-        ptr += sizeof(int);
+        memcpy(&flightData->Length, ptr, sizeof(char));
+        ptr += sizeof(char);
 
         flightData->flightStatus = (bool)ptr;
         ptr += sizeof(bool);

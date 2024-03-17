@@ -126,7 +126,7 @@ void activeFlight(Flight* connection)
 	{
 		bitstream transmission = flightConnection->getData(first);
 
-		std::cout << "size is " << transmission.size() << std::endl;
+		//std::cout << "size is " << transmission.size() << std::endl;
 
 		// Transmission had an error, size will always be 0
 		if (transmission.size() == 0) {
@@ -142,6 +142,8 @@ void activeFlight(Flight* connection)
 		}
 
 		FlightData data = flightConnection->deserializeFlightData(transmission, first);
+		std::cout << "ID: " << data.flightId << std::endl;
+		std::cout << "Time: " << data.timeSinceEpoch << std::endl;
 
 		if (first)
 		{
