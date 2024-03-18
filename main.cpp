@@ -77,7 +77,7 @@ void SpawnClient(bool* stop)
 
 	//randomize record selection (doesn't have to be true randomization)
 	//
-	int randomNumber = minRange + std::rand() % (maxRange - minRange + 1);
+	int randomNumber = minRange + (std::rand() + flightID[0]) % (maxRange - minRange + 1);
 
 	// Open selected randomized file
 	std::ifstream readFile(flightRecords[randomNumber]);
@@ -112,6 +112,7 @@ void SpawnClient(bool* stop)
 
 		// Serialize
 		bitstream stream = serializeFlightData(flightData);
+		std::cout << "Time: " << time << std::endl;
 
 		//FlightData newDat = deserializeFlightData(stream);
 		//std::cout << flightData.flightId << " - " << newDat.flightId << "Fuel level" << std::endl;
@@ -147,6 +148,8 @@ void SpawnClient(bool* stop)
 	//sendingThread->join();
 	//delete[] sendingThread;
 	//close connection
+
+	readFile.close();
 }
 
 void ParseLine(std::string line, double& currentFuel, time_t& time)
