@@ -17,7 +17,7 @@
 
 
 std::string TimeToString();
-bool saveTime(std::string timeStr);
+bool saveTime(std::vector<std::string> times);
 void activeFlight(Flight* connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
