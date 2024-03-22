@@ -48,14 +48,9 @@ void SpawnClient(bool* stop, int id)
 {
 	srand(time(0) + id);
 	// Open connection / Connect to server
-	//std::thread* sendingThread = nullptr;
-	//std::vector<FlightData*>* transmissions = new std::vector<FlightData*>();
 	Client c;
 	//c.setConnectionAddr("10.144.104.228", 23512).connect();
 	c.setConnectionAddr("127.0.0.1", 23512).connect();
-
-	//std::ofstream clientTimeLog("clientfile.csv", std::fstream::app);
-
 
 	std::cout << "Connected to server" << std::endl;
 
@@ -93,7 +88,6 @@ void SpawnClient(bool* stop, int id)
 	// Get the first line which we dont need for the circumstance and ignore it
 	std::getline(readFile, line);
 
-	//sendingThread = new std::thread(ClientConnection, transmissions);
 
 	// loop and read file until the EOF
 	unsigned long long int timeLast = 0;
@@ -117,11 +111,6 @@ void SpawnClient(bool* stop, int id)
 		bitstream stream = serializeFlightData(flightData);
 		std::cout << "Time: " << time << std::endl;
 
-		//FlightData newDat = deserializeFlightData(stream);
-		//std::cout << flightData.flightId << " - " << newDat.flightId << "Fuel level" << std::endl;
-
-
-		//transmissions->push_back(flightData);
 		if (timeLast == 0) {
 			timeLast = flightData.timeSinceEpoch;
 		}
@@ -130,8 +119,6 @@ void SpawnClient(bool* stop, int id)
 		unsigned long long int simDelay = flightData.timeSinceEpoch - timeLast;
 		std::cout << "delay: " << simDelay << std::endl;
 		Sleep(simDelay * 1000);
-
-		
 
 		// Send stream
 		c.send(stream);
@@ -146,11 +133,7 @@ void SpawnClient(bool* stop, int id)
 	
 	bitstream finalStream = serializeFlightData(*flightData);
 	c.send(finalStream);
-	//transmissions->push_back(flightData);
 	*stop = true;
-	//sendingThread->join();
-	//delete[] sendingThread;
-	//close connection
 
 	readFile.close();
 }
