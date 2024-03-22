@@ -172,6 +172,8 @@ void activeFlight(Flight* connection)
 			avgConsumption = fuelSpent / timespan;
 			saveData(data->flightId, avgConsumption, timespan, "./");
 		}
+
+		transmission.clear();
 	}
 
 	std::cout << "FLight Status is false" << std::endl;

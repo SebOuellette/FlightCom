@@ -10,9 +10,7 @@ bitstream::bitstream() {
 
 // Deconstructor | Free all data
 bitstream::~bitstream() {
-    if (!this->data) {
-        free(this->data);
-    }
+    //this->clear();
 }
 
 // Return the size of the block of data
@@ -37,15 +35,16 @@ BitstreamByte_p bitstream::end() {
 
 // Free all the allocated data. There is no need to reallocate since it will be allocated once required
 bitstream& bitstream::clear() {
-    if (!this->data) {
+    if (!this->data || this->data == nullptr) {
         this->data = nullptr;
 
         return *this; // It's already clear.. but now it's still clear
     }
-
-    // Free the memory
-    free(this->data);
-    this->data = nullptr;
+    else {
+        // Free the memory
+        free(this->data);
+        this->data = nullptr;
+    }
 
     // Reset the size
     this->_size = 0;
@@ -63,7 +62,13 @@ bitstream& bitstream::append(char* byteArray, int_l count) {
 
 
     // (re)allocate space for the data
-    this->data = (BitstreamByte_p)std::realloc(this->data, newSize);
+    auto newAddr = (BitstreamByte_p)std::realloc(this->data, newSize);
+    if (newAddr == nullptr) {
+        printf("Error reallocating space in bitstream.\n");
+        exit(1);
+    }
+    this->data = newAddr;
+
     BitstreamByte_p dataEnd = this->start() + this->size();
 
     // end() points to the first byte after data. We offset the pointer by the number of bytes we would like to append,
