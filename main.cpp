@@ -9,7 +9,11 @@
 #include "ConfigReader.h"
 #include <mutex>
 #include <condition_variable>
+#include <iomanip>
+#include <sstream>
 
+
+time_t stringToTime(std::string line);
 void activeFlight(Flight* connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
@@ -84,7 +88,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 		flightConnection.socket = flightListener.accept();
 		flightConnection.addr = flightListener.getReplyAddr();
 
-		// Map the connection to the action thread
+		// Map the connection to the action thread 
 		std::cout << "Accepted Flight Connection!" << std::endl;
 		Flight* flight = new Flight(flightConnection);
 		std::thread* connectionThread = new std::thread(activeFlight, flight);
@@ -194,3 +198,41 @@ bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, 
 	return true;
 
 }
+
+time_t stringToTime()
+{
+	std::tm timeStruct = {};
+
+	// Parse the time string into the tm structure
+	std::string newTime;
+	std::istringstream ss(newTime);
+	ss >> std::get_time(&timeStruct, "%H:%M:%S");
+
+	// Check for successful parsing
+	if (ss.fail()) {
+		std::cerr << "Failed to parse the time string." << std::endl;
+	}
+
+	// Set the date components to a valid default (e.g., January 1, 1970)
+	timeStruct.tm_year = 70;
+	timeStruct.tm_mon = 0;
+	timeStruct.tm_mday = 1;
+
+	// Convert tm structure to time_t
+	time_t timeValue = std::mktime(&timeStruct);
+
+	// Check if mktime was successful
+	if (timeValue == -1) {
+		std::cerr << "Failed to convert tm structure to time_t." << std::endl;
+
+		// Check the tm structure
+		std::cerr << "Invalid tm structure: "
+			<< "Year: " << timeStruct.tm_year << " Month: " << timeStruct.tm_mon
+			<< " Day: " << timeStruct.tm_mday << " Hour: " << timeStruct.tm_hour
+			<< " Min: " << timeStruct.tm_min << " Sec: " << timeStruct.tm_sec << std::endl;
+	}
+
+	// check the time_t value
+	std::cout << "Time in time_t format: " << timeValue << std::endl;
+
+	return timeValue;
