@@ -14,6 +14,7 @@
 
 
 std::string TimeToString();
+bool saveTime(std::string timeStr);
 void activeFlight(Flight* connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
@@ -233,5 +234,7 @@ std::string TimeToString()
 	if (ss.fail()) {
 		std::cerr << "Failed to parse the time string." << std::endl;
 	}
-	
+
 	return ss.str() + "\n";
+
+}
