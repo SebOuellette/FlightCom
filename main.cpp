@@ -131,8 +131,8 @@ void activeFlight(Flight* connection)
 	while (flightConnection->getFlightStatus())
 	{
 		bitstream transmission = flightConnection->getData(first);
-		std::string currentTime = TimeToString();
-		arrivalTimes.push_back(currentTime);
+		//std::string currentTime = TimeToString();
+		//arrivalTimes.push_back(currentTime);
 		//std::cout << "size is " << transmission.size() << std::endl;
 
 		// Transmission had an error, size will always be 0
@@ -182,15 +182,20 @@ void activeFlight(Flight* connection)
 	}
 
 	std::cout << "FLight Status is false" << std::endl;
+	//saveTime(arrivalTimes);
 }
 
-bool saveTime(std::string timeStr)
+bool saveTime(std::vector<std::string> times)
 {
 
 	std::ofstream fStreamout("arrivalTimes.txt", std::ios_base::app | std::ios_base::out);
 	if (fStreamout.is_open())
 	{
-		fStreamout.write(timeStr.c_str(), timeStr.size());
+		for(std::string& timeStr : times)
+		{
+			fStreamout.write(timeStr.c_str(), timeStr.size());
+		}
+		
 	}
 	else
 	{
@@ -198,8 +203,6 @@ bool saveTime(std::string timeStr)
 	}
 	fStreamout.close();
 	return true;
-
-
 }
 
 
