@@ -9,7 +9,12 @@
 #include "ConfigReader.h"
 #include <mutex>
 #include <condition_variable>
+#include <iomanip>
+#include <sstream>
 
+
+std::string TimeToString();
+bool saveTime(std::string timeStr);
 void activeFlight(Flight* connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
@@ -84,7 +89,7 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 		flightConnection.socket = flightListener.accept();
 		flightConnection.addr = flightListener.getReplyAddr();
 
-		// Map the connection to the action thread
+		// Map the connection to the action thread 
 		std::cout << "Accepted Flight Connection!" << std::endl;
 		Flight* flight = new Flight(flightConnection);
 		std::thread* connectionThread = new std::thread(activeFlight, flight);
@@ -119,13 +124,15 @@ void activeFlight(Flight* connection)
 	bool flightStatus = true;
 	std::string flightID = "";
 	Flight* flightConnection = connection;
+	std::vector<std::string> arrivalTimes;
 	
 
 	bool first = true;
 	while (flightConnection->getFlightStatus())
 	{
 		bitstream transmission = flightConnection->getData(first);
-
+		//std::string currentTime = TimeToString();
+		//arrivalTimes.push_back(currentTime);
 		//std::cout << "size is " << transmission.size() << std::endl;
 
 		// Transmission had an error, size will always be 0
@@ -177,6 +184,27 @@ void activeFlight(Flight* connection)
 	}
 
 	std::cout << "FLight Status is false" << std::endl;
+	//saveTime(arrivalTimes);
+}
+
+bool saveTime(std::vector<std::string> times)
+{
+
+	std::ofstream fStreamout("arrivalTimes.txt", std::ios_base::app | std::ios_base::out);
+	if (fStreamout.is_open())
+	{
+		for(std::string& timeStr : times)
+		{
+			fStreamout.write(timeStr.c_str(), timeStr.size());
+		}
+		
+	}
+	else
+	{
+		return false;
+	}
+	fStreamout.close();
+	return true;
 }
 
 
@@ -194,5 +222,24 @@ bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, 
 	}
 	fStreamout.close();
 	return true;
+
+}
+
+std::string TimeToString()
+{
+	time_t now = time(0);
+	tm* timeStruct = localtime(&now);
+
+	// Parse the time string into the tm structure
+	std::string newTime;
+	std::istringstream ss(newTime);
+	ss >> std::get_time(timeStruct, "%H:%M:%S");
+
+	// Check for successful parsing
+	if (ss.fail()) {
+		std::cerr << "Failed to parse the time string." << std::endl;
+	}
+
+	return ss.str() + "\n";
 
 }
