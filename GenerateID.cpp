@@ -2,11 +2,12 @@
 
 std::string GenerateID::GetRandomSequence(int length)
 {
+	this->generated = "";
+
 	for (int i = 0; i < length; i++)
 	{
-		
-		srand(time(0));
-		generated += charset.at(rand() % charset.size() - 1);
+		int num = rand() % (charset.size() - 1);
+		this->generated += charset.at(num);
 	}
 	return generated;
 }

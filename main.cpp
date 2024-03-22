@@ -14,14 +14,14 @@
 time_t stringToTime(std::string line);
 void ParseLine(std::string line, double& currentFuel, time_t& time);
 void ClientConnection(std::vector<FlightData*>* dataStreams);
-void SpawnClient(bool* stop);
+void SpawnClient(bool* stop, int id);
 
 #pragma comment(lib, "Ws2_32.lib")
 
 void main() {
 	srand(time(0));
 	//get input from user - number of clients to spawn
-	int numberOfClients = 1;
+	int numberOfClients = 20;
 	bool stop = false;
 	std::vector<std::thread*> clientThreads;
 
@@ -31,7 +31,7 @@ void main() {
 
 	for (int i = 0; i < numberOfClients; i++)
 	{
-		std::thread* clientThread = new std::thread(SpawnClient, &stop);
+		std::thread* clientThread = new std::thread(SpawnClient, &stop, i);
 		clientThreads.push_back(clientThread);
 	}
 	//dont stop until it is terminated automatically
@@ -44,14 +44,17 @@ void main() {
 	//End of Program
 }
 
-void SpawnClient(bool* stop)
+void SpawnClient(bool* stop, int id)
 {
+	srand(time(0) + id);
 	// Open connection / Connect to server
 	//std::thread* sendingThread = nullptr;
 	//std::vector<FlightData*>* transmissions = new std::vector<FlightData*>();
 	Client c;
 	//c.setConnectionAddr("10.144.104.228", 23512).connect();
 	c.setConnectionAddr("127.0.0.1", 23512).connect();
+
+	//std::ofstream clientTimeLog("clientfile.csv", std::fstream::app);
 
 
 	std::cout << "Connected to server" << std::endl;

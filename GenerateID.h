@@ -8,7 +8,7 @@ class GenerateID
 private:
 
 	int length;
-	std::string generated;
+	std::string generated = "";
 	std::string charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 public:
