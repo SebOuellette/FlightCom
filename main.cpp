@@ -80,7 +80,6 @@ void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*
 	
 	// Create the server we will use to listen for incoming connections
 	Server flightListener(serverSocketConfigs.front().address);
-	Socket listenerSocket = flightListener.getServerSocket();
 
 	// Loop until the server is told to close
 	while (!*abort)
@@ -129,7 +128,6 @@ void activeFlight(Flight* connection)
 	Flight* flightConnection = connection;
 	std::vector<std::string> arrivalTimes;
 	
-
 	bool first = true;
 	while (flightConnection->getFlightStatus())
 	{
@@ -162,8 +160,6 @@ void activeFlight(Flight* connection)
 		}
 		else
 			data->flightId = flightID;
-
-		//write lock
 		
 		if (data->fuelLevel == 0) {
 			std::cout << "Fuel: " << data->fuelLevel << std::endl;
