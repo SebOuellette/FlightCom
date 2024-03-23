@@ -15,15 +15,11 @@
 #include <iomanip>
 #include <sstream>
 
-
 std::string TimeToString();
 bool saveTime(std::vector<std::string> times);
 void activeFlight(Flight* connection);
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path);
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* shutdown);
-std::mutex lock;
-std::condition_variable writeWakeUp;
-
 #pragma comment(lib, "Ws2_32.lib")
 void main()
 {
@@ -54,7 +50,6 @@ void main()
 		default:
 			continue;
 		}
-
 	}
 	if (!flightRepository->empty())
 	{
@@ -66,10 +61,8 @@ void main()
 			flightRepository->erase(flightRepository->begin() + i);
 		}
 	}
-	
 
 	listener.join();
-
 }
 
 void listeningThread(std::shared_ptr<std::vector<std::pair<std::thread*, Flight*>>> flightRepository, bool* abort)
@@ -134,7 +127,6 @@ void activeFlight(Flight* connection)
 		bitstream transmission = flightConnection->getData(first);
 		//std::string currentTime = TimeToString();
 		//arrivalTimes.push_back(currentTime);
-		//std::cout << "size is " << transmission.size() << std::endl;
 
 		// Transmission had an error, size will always be 0
 		if (transmission.size() == 0) {
@@ -167,8 +159,6 @@ void activeFlight(Flight* connection)
 		}
 
 		//calculation
-		flightStatus = flightConnection->getFlightStatus();
-
 		fuelSpent += (fuelAtLastTransmission == 0) ? 0 : fuelAtLastTransmission - data->fuelLevel;
 		fuelAtLastTransmission = data->fuelLevel;
 		timespan += (timeAtLastTransmission == 0) ? 0 : data->timeSinceEpoch - timeAtLastTransmission;
@@ -196,7 +186,6 @@ bool saveTime(std::vector<std::string> times)
 		{
 			fStreamout.write(timeStr.c_str(), timeStr.size());
 		}
-		
 	}
 	else
 	{
@@ -205,7 +194,6 @@ bool saveTime(std::vector<std::string> times)
 	fStreamout.close();
 	return true;
 }
-
 
 bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, std::string path)
 {
@@ -221,7 +209,6 @@ bool saveData(std::string flightID, double fuelConsumption, time_t timeElapsed, 
 	}
 	fStreamout.close();
 	return true;
-
 }
 
 std::string TimeToString()
@@ -238,7 +225,5 @@ std::string TimeToString()
 	if (ss.fail()) {
 		std::cerr << "Failed to parse the time string." << std::endl;
 	}
-
 	return ss.str() + "\n";
-
 }
