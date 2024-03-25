@@ -13,7 +13,6 @@
 
 time_t stringToTime(std::string line);
 void ParseLine(std::string line, double& currentFuel, time_t& time);
-void ClientConnection(std::vector<FlightData*>* dataStreams);
 void SpawnClient(bool* stop, int id);
 
 #pragma comment(lib, "Ws2_32.lib")
