@@ -41,6 +41,7 @@ void main() {
 		client->join();
 		delete client;
 	}
+	std::cout << "Flight completed..." << std::endl;
 	//End of Program
 }
 
@@ -133,9 +134,8 @@ void SpawnClient(bool* stop, int id)
 	
 	bitstream finalStream = serializeFlightData(*flightData);
 	c.send(finalStream);
-	*stop = true;
-
 	readFile.close();
+	*stop = true;
 }
 
 void ParseLine(std::string line, double& currentFuel, time_t& time)
